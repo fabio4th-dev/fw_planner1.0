@@ -185,6 +185,7 @@
             background: #1a1f2b;
             border-radius: 15px;
             padding: 25px;
+            /* <-- Era 25px, reduza para 15px ou 20px */
             border: 1px solid #2d3748;
             box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
             animation: slideInUp 0.6s ease;
@@ -233,7 +234,8 @@
         }
 
         .card-header h2 {
-            font-size: 18px;
+            font-size: 16px;
+            /* <-- Era 18px, reduza para 16px, 15px ou 14px */
             color: #60a5fa;
             font-weight: 600;
         }
@@ -260,11 +262,26 @@
         }
 
         .grid-3 {
+            display: grid;
+            gap: 20px;
             grid-template-columns: repeat(3, 1fr);
+            /* <-- Mude o 1fr para valores fixos */
         }
 
         .grid-4 {
             grid-template-columns: repeat(4, 1fr);
+        }
+
+        .data-projeto {
+            font-size: 14px;
+            /* Mesmo tamanho do Fluxo de OS */
+            color: #60a5fa;
+            /* Mesma cor azul */
+            font-weight: 600;
+            /* Mesmo peso da fonte */
+            letter-spacing: 0.5px;
+            /* Mesmo espaçamento (copiado do badge) */
+            display: inline-block;
         }
 
         table {
@@ -561,7 +578,8 @@
         }
 
         .gauge-value {
-            font-size: 30px;
+            font-size: 22px;
+            /* <-- AUMENTE ou DIMINUA este valor */
             font-weight: bold;
             color: #60a5fa;
             line-height: 1;
@@ -1154,67 +1172,67 @@
                     console.log('Efetivo Semanas:', JSON.stringify(window.projetos[0].dadosHHT.efetivoSemanas));
                 }
 
-// CARREGAR DADOS MOI/MOD - VERSÃO SUPER SIMPLES
-console.log('🔵 CARREGANDO MOI/MOD...');
+                // CARREGAR DADOS MOI/MOD - VERSÃO SUPER SIMPLES
+                console.log('🔵 CARREGANDO MOI/MOD...');
 
-const { data: moimodData, error: moimodError } = await window.supabaseClient
-    .from('moimod_dados_r17suzano')
-    .select('*');
+                const { data: moimodData, error: moimodError } = await window.supabaseClient
+                    .from('moimod_dados_r17suzano')
+                    .select('*');
 
-if (moimodError) {
-    console.error('Erro MOI/MOD:', moimodError);
-    throw moimodError;
-}
+                if (moimodError) {
+                    console.error('Erro MOI/MOD:', moimodError);
+                    throw moimodError;
+                }
 
-console.log('📦 Dados MOI/MOD brutos:', moimodData);
+                console.log('📦 Dados MOI/MOD brutos:', moimodData);
 
-if (moimodData && moimodData.length > 0) {
-    // ATRIBUIÇÃO DIRETA - sem frescura
-    for (let i = 0; i < moimodData.length; i++) {
-        const item = moimodData[i];
-        
-        if (item.tipo === 'MOI Total') {
-            window.projetos[0].dadosHHT.moiSemanas = [
-                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                Number(item.semana_16), Number(item.semana_17)
-            ];
-            console.log('✅ MOI atribuído:', window.projetos[0].dadosHHT.moiSemanas);
-        }
-        
-        if (item.tipo === 'MOD Total') {
-            window.projetos[0].dadosHHT.modSemanas = [
-                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                Number(item.semana_16), Number(item.semana_17)
-            ];
-            console.log('✅ MOD atribuído:', window.projetos[0].dadosHHT.modSemanas);
-        }
-        
-        if (item.tipo === 'Efetivo Total') {
-            window.projetos[0].dadosHHT.efetivoSemanas = [
-                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                Number(item.semana_16), Number(item.semana_17)
-            ];
-            console.log('✅ Efetivo atribuído:', window.projetos[0].dadosHHT.efetivoSemanas);
-        }
-    }
-}
+                if (moimodData && moimodData.length > 0) {
+                    // ATRIBUIÇÃO DIRETA - sem frescura
+                    for (let i = 0; i < moimodData.length; i++) {
+                        const item = moimodData[i];
 
-console.log('🔵 VERIFICAÇÃO FINAL MOI/MOD:');
-console.log('MOI:', window.projetos[0].dadosHHT.moiSemanas);
-console.log('MOD:', window.projetos[0].dadosHHT.modSemanas);
-console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
+                        if (item.tipo === 'MOI Total') {
+                            window.projetos[0].dadosHHT.moiSemanas = [
+                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
+                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
+                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
+                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
+                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
+                                Number(item.semana_16), Number(item.semana_17)
+                            ];
+                            console.log('✅ MOI atribuído:', window.projetos[0].dadosHHT.moiSemanas);
+                        }
+
+                        if (item.tipo === 'MOD Total') {
+                            window.projetos[0].dadosHHT.modSemanas = [
+                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
+                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
+                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
+                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
+                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
+                                Number(item.semana_16), Number(item.semana_17)
+                            ];
+                            console.log('✅ MOD atribuído:', window.projetos[0].dadosHHT.modSemanas);
+                        }
+
+                        if (item.tipo === 'Efetivo Total') {
+                            window.projetos[0].dadosHHT.efetivoSemanas = [
+                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
+                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
+                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
+                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
+                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
+                                Number(item.semana_16), Number(item.semana_17)
+                            ];
+                            console.log('✅ Efetivo atribuído:', window.projetos[0].dadosHHT.efetivoSemanas);
+                        }
+                    }
+                }
+
+                console.log('🔵 VERIFICAÇÃO FINAL MOI/MOD:');
+                console.log('MOI:', window.projetos[0].dadosHHT.moiSemanas);
+                console.log('MOD:', window.projetos[0].dadosHHT.modSemanas);
+                console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
 
                 // Calcular média semanal HHT
                 const valoresPositivos = window.projetos[0].dadosHHT.hhtSemanas.filter(v => v > 0);
@@ -1377,7 +1395,7 @@ console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
                             </div>
                             ${window.renderGauge(projeto.progresso)}
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                                <span style="font-size: 13px; color: #94a3b8;">${new Date(projeto.inicio).toLocaleDateString()} - ${new Date(projeto.fim).toLocaleDateString()}</span>
+                                <span class="data-projeto">${new Date(projeto.inicio).toLocaleDateString()} - ${new Date(projeto.fim).toLocaleDateString()}</span>
                                 <img src="${projeto.logo}" class="${projeto.logo === 'Suzano LOGO 2.png' ? 'logo-suzano2' : 'logo-img'}" alt="logo" onerror="this.src='fw_mini.ico'">
                             </div>
                         </div>
@@ -2408,7 +2426,7 @@ console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
             }, 500);
         };
 
-    
+
 
 
     </script>
