@@ -855,11 +855,16 @@
 </head>
 
 <body>
-    <div class="loading" id="loading">
-        <div class="logos-loading">
-            <span style="color:#3b82f6; font-weight:bold; font-size:24px;">FW</span>
-            <span style="color:#d97706; font-weight:bold; font-size:24px;">AC</span>
-            <span style="color:#059669; font-weight:bold; font-size:24px;">DS</span>
+    <div class="logos-loading">
+            <img src="FW Logo.png" alt="FW"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none; color:#3b82f6; font-weight:bold;">FW</span>
+            <img src="Altercon Logo.png" alt="Altercon"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none; color:#d97706; font-weight:bold;">AC</span>
+            <img src="Delservin Logo.png" alt="Delservin"
+                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+            <span style="display:none; color:#059669; font-weight:bold;">DS</span>
         </div>
         <div class="spinner"></div>
         <div id="loadingMessage" style="margin-top: 20px; font-size: 16px;">Carregando sistema...</div>
@@ -2410,3 +2415,4 @@ console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
 
 
 </html>
+
