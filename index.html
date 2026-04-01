@@ -1,2435 +1,521 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FW Company - Sistema de Acompanhamento de Obras</title>
+    <title>FW Company - Sistema de Gestão Documental EAP</title>
     <link rel="icon" type="image/x-icon" href="fw_mini.ico">
-    <!-- Font Awesome para ícones -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Chart.js para gráficos -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <!-- Supabase JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver@2.0.5/dist/FileSaver.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #0a0c10;
-            min-height: 100vh;
-            color: #e1e9f0;
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-
-        ::-webkit-scrollbar-track {
-            background: #1e293b;
-        }
-
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
-        }
-
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2563eb;
-        }
-
-        .sidebar {
-            width: 280px;
-            background: #0f172a;
-            color: #e1e9f0;
-            display: flex;
-            flex-direction: column;
-            border-right: 1px solid #2d3748;
-        }
-
-        .sidebar-header {
-            padding: 25px 20px;
-            text-align: center;
-            border-bottom: 1px solid #2d3748;
-        }
-
-        .sidebar-header img {
-            width: 160px;
-            height: 95px;
-            object-fit: contain;
-            margin-bottom: 10px;
-        }
-
-        .sidebar-header h3 {
-            font-size: 14px;
-            font-weight: 300;
-            color: #94a3b8;
-        }
-
-        .sidebar-menu {
-            flex: 1;
-            padding: 20px 10px;
-            overflow-y: auto;
-        }
-
-        .menu-item {
-            padding: 12px 20px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            color: #94a3b8;
-            cursor: pointer;
-            border-radius: 8px;
-            margin-bottom: 5px;
-            transition: all 0.3s;
-        }
-
-        .menu-item i {
-            font-size: 20px;
-            width: 24px;
-        }
-
-        .menu-item:hover {
-            background: #1e293b;
-            color: #60a5fa;
-        }
-
-        .menu-item.active {
-            background: #1e293b;
-            color: #60a5fa;
-            border-left: 3px solid #3b82f6;
-        }
-
-        .sidebar-footer {
-            padding: 20px;
-            border-top: 1px solid #2d3748;
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
-            align-items: center;
-        }
-
-        .sidebar-footer img {
-            height: 35px;
-            width: auto;
-            object-fit: contain;
-            opacity: 0.8;
-            transition: all 0.3s;
-        }
-
-        .sidebar-footer img:hover {
-            opacity: 1;
-            transform: scale(1.05);
-        }
-
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 20px;
-            background: #0a0c10;
-        }
-
-        .top-bar {
-            background: #1a1f2b;
-            border-radius: 15px;
-            padding: 15px 25px;
-            margin-bottom: 25px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border: 1px solid #2d3748;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-        }
-
-        .page-title {
-            font-size: 22px;
-            font-weight: 600;
-            color: #60a5fa;
-        }
-
-        .logos-secundarios {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-        }
-
-        .logos-secundarios img {
-            height: 40px;
-            width: auto;
-            object-fit: contain;
-            filter: brightness(0.9);
-            transition: all 0.3s;
-        }
-
-        .logos-secundarios img:hover {
-            filter: brightness(1.2);
-            transform: scale(1.1);
-        }
-
-        .content-container {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .card {
-            background: #1a1f2b;
-            border-radius: 15px;
-            padding: 25px;
-            /* <-- Era 25px, reduza para 15px ou 20px */
-            border: 1px solid #2d3748;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
-            animation: slideInUp 0.6s ease;
-            animation-fill-mode: both;
-        }
-
-        .card:nth-child(1) {
-            animation-delay: 0.1s;
-        }
-
-        .card:nth-child(2) {
-            animation-delay: 0.2s;
-        }
-
-        .card:nth-child(3) {
-            animation-delay: 0.3s;
-        }
-
-        .card:nth-child(4) {
-            animation-delay: 0.4s;
-        }
-
-        .card:nth-child(5) {
-            animation-delay: 0.5s;
-        }
-
-        @keyframes slideInUp {
-            0% {
-                transform: translateY(30px);
-                opacity: 0;
-            }
-
-            100% {
-                transform: translateY(0);
-                opacity: 1;
-            }
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #2d3748;
-        }
-
-        .card-header h2 {
-            font-size: 16px;
-            /* <-- Era 18px, reduza para 16px, 15px ou 14px */
-            color: #60a5fa;
-            font-weight: 600;
-        }
-
-        .badge {
-            background: #1e293b;
-            color: #60a5fa;
-            padding: 5px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 600;
-            border: 1px solid #3b82f6;
-        }
-
-        .grid-2,
-        .grid-3,
-        .grid-4 {
-            display: grid;
-            gap: 20px;
-        }
-
-        .grid-2 {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .grid-3 {
-            display: grid;
-            gap: 20px;
-            grid-template-columns: repeat(3, 1fr);
-            /* <-- Mude o 1fr para valores fixos */
-        }
-
-        .grid-4 {
-            grid-template-columns: repeat(4, 1fr);
-        }
-
-        .data-projeto {
-            font-size: 14px;
-            /* Mesmo tamanho do Fluxo de OS */
-            color: #60a5fa;
-            /* Mesma cor azul */
-            font-weight: 600;
-            /* Mesmo peso da fonte */
-            letter-spacing: 0.5px;
-            /* Mesmo espaçamento (copiado do badge) */
-            display: inline-block;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-            color: #e1e9f0;
-        }
-
-        th {
-            background: #1e293b;
-            color: #94a3b8;
-            padding: 12px;
-            font-weight: 600;
-            text-align: left;
-            border-bottom: 2px solid #3b82f6;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        td {
-            padding: 10px 12px;
-            border-bottom: 1px solid #334155;
-        }
-
-        tr {
-            background: #1e293b;
-        }
-
-        tr:hover {
-            background: #2d3748;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 5px;
-            color: #94a3b8;
-            font-weight: 500;
-            font-size: 12px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .form-control {
-            width: 100%;
-            padding: 10px 15px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            font-size: 14px;
-            color: #e1e9f0;
-            transition: all 0.3s;
-        }
-
-        .form-control:focus {
-            outline: none;
-            border-color: #3b82f6;
-            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
-        }
-
-        .form-control::placeholder {
-            color: #64748b;
-        }
-
-        select.form-control option {
-            background: #1e293b;
-            color: #e1e9f0;
-        }
-
-        .btn {
-            padding: 12px 24px;
-            border: none;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-        }
-
-        .btn-primary {
-            background: #3b82f6;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #2563eb;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(59, 130, 246, 0.3);
-        }
-
-        .btn-success {
-            background: #059669;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #047857;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(5, 150, 105, 0.3);
-        }
-
-        .progress {
-            height: 8px;
-            background: #1e293b;
-            border-radius: 4px;
-            overflow: hidden;
-            border: 1px solid #334155;
-        }
-
-        .progress-bar {
-            height: 100%;
-            background: linear-gradient(90deg, #3b82f6, #60a5fa);
-            border-radius: 4px;
-            transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .tabs {
-            display: flex;
-            gap: 2px;
-            border-bottom: 1px solid #2d3748;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-
-        .tab {
-            padding: 10px 20px;
-            cursor: pointer;
-            color: #94a3b8;
-            font-weight: 500;
-            font-size: 13px;
-            border-bottom: 3px solid transparent;
-            transition: all 0.3s;
-        }
-
-        .tab:hover {
-            color: #60a5fa;
-            background: #1e293b;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .tab.active {
-            color: #60a5fa;
-            border-bottom-color: #3b82f6;
-            background: #1e293b;
-            border-radius: 8px 8px 0 0;
-        }
-
-        .tab-content {
-            transition: opacity 0.4s ease;
-        }
-
-        .rdo-container {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .rdo-header {
-            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-            color: #60a5fa;
-            padding: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            text-align: center;
-            border-bottom: 1px solid #3b82f6;
-        }
-
-        .rdo-info {
-            background: #0f172a;
-            padding: 20px;
-            border-bottom: 1px solid #334155;
-        }
-
-        .rdo-info-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 15px;
-        }
-
-        .rdo-field {
-            background: #1e293b;
-            padding: 12px;
-            border: 1px solid #334155;
-            border-radius: 8px;
-        }
-
-        .rdo-field label {
-            color: #94a3b8;
-            font-weight: 600;
-            font-size: 12px;
-            display: block;
-            text-transform: uppercase;
-        }
-
-        .rdo-field .value {
-            font-size: 15px;
-            font-weight: 500;
-            color: #e1e9f0;
-        }
-
-        .rdo-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-
-        .rdo-table th {
-            background: #0f172a;
-            color: #60a5fa;
-            font-weight: 500;
-            padding: 10px;
-            border: 1px solid #334155;
-        }
-
-        .rdo-table td {
-            border: 1px solid #334155;
-            padding: 10px;
-        }
-
-        .logo-img {
-            height: 35px;
-            width: auto;
-            object-fit: contain;
-            filter: brightness(0.9);
-            transition: all 0.3s;
-        }
-
-        .logo-img:hover {
-            transform: scale(1.2) rotate(5deg);
-            filter: brightness(1.2);
-        }
-
-        .gauge-wrapper {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 10px 0;
-            animation: fadeIn 0.5s ease;
-        }
-
-        .gauge-container {
-            position: relative;
-            width: 200px;
-            height: 100px;
-            overflow: hidden;
-        }
-
-        .gauge-bg {
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: #1e293b;
-            position: relative;
-            overflow: hidden;
-            border: 1px solid #334155;
-        }
-
-        .gauge-fill {
-            position: absolute;
-            width: 200px;
-            height: 200px;
-            border-radius: 50%;
-            background: conic-gradient(from 0deg,
-                    var(--cor-inicio, #3b82f6) 0deg,
-                    var(--cor-fim, #60a5fa) var(--progress-deg),
-                    transparent var(--progress-deg));
-            transform: rotate(-90deg);
-            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-
-        .gauge-cover {
-            position: absolute;
-            width: 160px;
-            height: 160px;
-            border-radius: 50%;
-            background: #1a1f2b;
-            top: 20px;
-            left: 20px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-            border: 1px solid #334155;
-        }
-
-        .gauge-value {
-            font-size: 22px;
-            /* <-- AUMENTE ou DIMINUA este valor */
-            font-weight: bold;
-            color: #60a5fa;
-            line-height: 1;
-            transition: all 0.3s;
-        }
-
-        .gauge-value.text-success {
-            color: #34d399 !important;
-        }
-
-        .gauge-label {
-            font-size: 12px;
-            color: #94a3b8;
-            text-transform: uppercase;
-        }
-
-        @keyframes fadeIn {
-            0% {
-                opacity: 0;
-            }
-
-            100% {
-                opacity: 1;
-            }
-        }
-
-        .loading {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            color: white;
-            backdrop-filter: blur(4px);
-        }
-
-        .loading.active {
-            display: flex;
-        }
-
-        .spinner {
-            width: 80px;
-            height: 80px;
-            border: 6px solid #1e293b;
-            border-top: 6px solid #3b82f6;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin-bottom: 20px;
-        }
-
-        @keyframes spin {
-            0% {
-                transform: rotate(0deg);
-            }
-
-            100% {
-                transform: rotate(360deg);
-            }
-        }
-
-        .logos-loading {
-            display: flex;
-            align-items: center;
-            gap: 30px;
-            margin-bottom: 40px;
-        }
-
-        .logos-loading img {
-            height: 50px;
-            width: auto;
-            object-fit: contain;
-            filter: brightness(0) invert(1);
-        }
-
-        .info-bar {
-            background: #1e3a5f;
-            color: #e1e9f0;
-            padding: 10px 20px;
-            margin: 0 0 20px 0;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            border-left: 5px solid #3b82f6;
-        }
-
-        .chart-container {
-            position: relative;
-            height: 400px;
-            width: 100%;
-            margin-top: 20px;
-        }
-
-        .chart-legend {
-            display: flex;
-            gap: 20px;
-            justify-content: center;
-            margin-bottom: 15px;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 13px;
-            color: #94a3b8;
-        }
-
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 4px;
-        }
-
-        .legend-color.real {
-            background: #3b82f6;
-        }
-
-        .legend-color.lb {
-            background: #f59e0b;
-        }
-
-        .legend-color.forecast {
-            background: #10b981;
-        }
-
-        .upload-area {
-            background: #1e293b;
-            border: 2px dashed #3b82f6;
-            border-radius: 8px;
-            padding: 20px;
-            text-align: center;
-            margin-bottom: 20px;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .upload-area:hover {
-            background: #2d3748;
-            border-color: #60a5fa;
-        }
-
-        .upload-area i {
-            font-size: 40px;
-            color: #3b82f6;
-            margin-bottom: 10px;
-        }
-
-        .upload-area p {
-            color: #94a3b8;
-            margin: 5px 0;
-        }
-
-        .upload-area small {
-            color: #64748b;
-            font-size: 12px;
-        }
-
-        .project-selector {
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-
-        .project-selector select {
-            flex: 1;
-        }
-
-        .data-type-selector {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .data-type-btn {
-            flex: 1;
-            padding: 10px;
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 8px;
-            color: #94a3b8;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.3s;
-        }
-
-        .data-type-btn.active {
-            background: #3b82f6;
-            color: white;
-            border-color: #60a5fa;
-        }
-
-        .data-type-btn:hover {
-            background: #2d3748;
-        }
-
-        .data-type-btn.active:hover {
-            background: #2563eb;
-        }
-
-        .hht-card {
-            background: #1e293b;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #334155;
-        }
-
-        .hht-card h4 {
-            color: #60a5fa;
-            margin-bottom: 10px;
-            font-size: 14px;
-        }
-
-        .hht-value {
-            font-size: 24px;
-            font-weight: bold;
-            color: #e1e9f0;
-        }
-
-        .hht-label {
-            font-size: 12px;
-            color: #94a3b8;
-        }
-
-        .logo-suzano2 {
-            height: 90px !important;
-            width: auto;
-            object-fit: contain;
-            filter: brightness(0.9);
-            transition: all 0.3s;
-        }
-
-        .logo-suzano2:hover {
-            transform: scale(1.2) rotate(5deg);
-            filter: brightness(1.2);
-        }
-
-        .hht-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 12px;
-        }
-
-        .hht-table th {
-            background: #0f172a;
-            color: #60a5fa;
-            padding: 10px 5px;
-            text-align: center;
-            border: 1px solid #334155;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-        }
-
-        .hht-table td {
-            padding: 8px 5px;
-            border: 1px solid #334155;
-            text-align: center;
-        }
-
-        .hht-table td:first-child {
-            font-weight: 600;
-            text-align: left;
-            background: #1e293b;
-            position: sticky;
-            left: 0;
-        }
-
-        .hht-value-cell {
-            font-weight: 600;
-            color: #60a5fa;
-        }
-
-        .positive-value {
-            color: #34d399;
-            font-weight: 500;
-        }
-
-        .zero-value {
-            color: #64748b;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0a0c10; color: #e1e9f0; display: flex; height: 100vh; overflow: hidden; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 4px; }
+        
+        /* Sidebar */
+        .sidebar { width: 300px; background: #0f172a; display: flex; flex-direction: column; border-right: 1px solid #2d3748; }
+        .sidebar-header { padding: 25px 20px; text-align: center; border-bottom: 1px solid #2d3748; }
+        .sidebar-header img { width: 140px; height: auto; object-fit: contain; margin-bottom: 10px; }
+        .sidebar-header h3 { font-size: 14px; font-weight: 300; color: #94a3b8; }
+        .sidebar-menu { flex: 1; padding: 20px 10px; overflow-y: auto; }
+        .menu-item { padding: 12px 20px; display: flex; align-items: center; gap: 12px; color: #94a3b8; cursor: pointer; border-radius: 8px; margin-bottom: 5px; transition: all 0.3s; }
+        .menu-item i { font-size: 20px; width: 24px; }
+        .menu-item:hover, .menu-item.active { background: #1e293b; color: #60a5fa; }
+        .menu-item.active { border-left: 3px solid #3b82f6; }
+        .sidebar-footer { padding: 20px; border-top: 1px solid #2d3748; display: flex; flex-direction: column; gap: 15px; align-items: center; }
+        .sidebar-footer img { height: 35px; width: auto; object-fit: contain; opacity: 0.8; }
+        
+        /* Main Content */
+        .main-content { flex: 1; overflow-y: auto; padding: 20px; background: #0a0c10; }
+        .top-bar { background: #1a1f2b; border-radius: 15px; padding: 15px 25px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #2d3748; }
+        .page-title { font-size: 22px; font-weight: 600; color: #60a5fa; }
+        .logos-secundarios { display: flex; align-items: center; gap: 20px; }
+        .logos-secundarios img { height: 40px; width: auto; object-fit: contain; }
+        .content-container { display: flex; flex-direction: column; gap: 20px; }
+        
+        /* Cards */
+        .card { background: #1a1f2b; border-radius: 15px; padding: 25px; border: 1px solid #2d3748; animation: fadeInUp 0.5s ease; }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #2d3748; }
+        .card-header h2 { font-size: 18px; color: #60a5fa; font-weight: 600; }
+        .badge { background: #1e293b; color: #60a5fa; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; border: 1px solid #3b82f6; }
+        .badge-success { background: #059669; color: white; }
+        .badge-warning { background: #d97706; color: white; }
+        .badge-info { background: #3b82f6; color: white; }
+        
+        /* Grid */
+        .grid-2, .grid-3, .grid-4 { display: grid; gap: 20px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        .grid-4 { grid-template-columns: repeat(4, 1fr); }
+        
+        /* EAP Tree */
+        .eap-tree { margin-top: 20px; }
+        .eap-node { margin-left: 20px; padding-left: 20px; border-left: 2px solid #3b82f6; }
+        .eap-item { padding: 12px 15px; margin: 8px 0; background: #1e293b; border-radius: 8px; cursor: pointer; transition: all 0.3s; display: flex; justify-content: space-between; align-items: center; }
+        .eap-item:hover { background: #2d3748; transform: translateX(5px); }
+        .eap-item.active { background: #3b82f6; color: white; }
+        .eap-code { font-family: monospace; font-weight: bold; color: #60a5fa; margin-right: 15px; }
+        .eap-name { flex: 1; }
+        .eap-count { background: #0f172a; padding: 2px 8px; border-radius: 20px; font-size: 12px; }
+        
+        /* Documentos */
+        .document-card { background: #1e293b; border-radius: 10px; padding: 15px; margin-bottom: 12px; border: 1px solid #334155; transition: all 0.3s; display: flex; align-items: center; gap: 15px; }
+        .document-card:hover { transform: translateY(-2px); border-color: #3b82f6; }
+        .document-icon { font-size: 32px; color: #3b82f6; }
+        .document-info { flex: 1; }
+        .document-title { font-weight: 600; color: #60a5fa; margin-bottom: 5px; }
+        .document-meta { font-size: 12px; color: #94a3b8; display: flex; gap: 15px; flex-wrap: wrap; }
+        .document-actions { display: flex; gap: 10px; }
+        
+        /* PO Items */
+        .po-item-row { background: #1e293b; padding: 15px; border-radius: 8px; margin-bottom: 10px; border: 1px solid #334155; }
+        .total-value { font-size: 24px; font-weight: bold; color: #60a5fa; }
+        .item-remove { color: #dc2626; cursor: pointer; font-size: 12px; text-align: right; display: inline-block; padding: 5px 10px; }
+        .item-remove:hover { color: #ef4444; text-decoration: underline; }
+        
+        /* Upload Area */
+        .upload-area { background: #1e293b; border: 2px dashed #3b82f6; border-radius: 12px; padding: 30px; text-align: center; cursor: pointer; transition: all 0.3s; margin-bottom: 20px; }
+        .upload-area:hover { background: #2d3748; border-color: #60a5fa; }
+        .upload-area i { font-size: 48px; color: #3b82f6; margin-bottom: 15px; }
+        
+        /* Forms */
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; color: #94a3b8; font-weight: 500; font-size: 12px; text-transform: uppercase; }
+        .form-control { width: 100%; padding: 10px 15px; background: #1e293b; border: 1px solid #334155; border-radius: 8px; font-size: 14px; color: #e1e9f0; }
+        .form-control:focus { outline: none; border-color: #3b82f6; }
+        select.form-control, textarea.form-control { background: #1e293b; }
+        
+        /* Buttons */
+        .btn { padding: 10px 20px; border: none; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+        .btn-primary { background: #3b82f6; color: white; }
+        .btn-primary:hover { background: #2563eb; transform: translateY(-2px); }
+        .btn-success { background: #059669; color: white; }
+        .btn-success:hover { background: #047857; }
+        .btn-danger { background: #dc2626; color: white; }
+        .btn-secondary { background: #475569; color: white; }
+        .btn-sm { padding: 5px 12px; font-size: 12px; }
+        
+        /* Stats Cards */
+        .stat-card { background: linear-gradient(135deg, #1e293b, #0f172a); border-radius: 12px; padding: 20px; text-align: center; border: 1px solid #334155; }
+        .stat-value { font-size: 32px; font-weight: bold; color: #60a5fa; }
+        .stat-label { font-size: 12px; color: #94a3b8; margin-top: 5px; text-transform: uppercase; }
+        
+        /* Loading */
+        .loading-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(10,12,16,0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; flex-direction: column; backdrop-filter: blur(8px); transition: opacity 0.5s; }
+        .loading-overlay.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+        .loading-spinner { width: 50px; height: 50px; border: 4px solid #1e293b; border-top: 4px solid #3b82f6; border-radius: 50%; animation: spin 1s linear infinite; margin-bottom: 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .info-bar { background: #1e3a5f; padding: 10px 20px; margin-bottom: 20px; border-radius: 8px; display: flex; align-items: center; gap: 10px; border-left: 5px solid #3b82f6; }
+        .table-responsive { overflow-x: auto; }
+        .chart-container { height: 300px; position: relative; }
+        .action-buttons { display: flex; gap: 8px; }
+        
+        /* Tabs */
+        .tabs { display: flex; gap: 5px; border-bottom: 1px solid #2d3748; margin-bottom: 20px; flex-wrap: wrap; }
+        .tab { padding: 10px 20px; cursor: pointer; color: #94a3b8; font-weight: 500; border-bottom: 3px solid transparent; transition: all 0.3s; }
+        .tab:hover, .tab.active { color: #60a5fa; }
+        .tab.active { border-bottom-color: #3b82f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
     </style>
 </head>
-
 <body>
-    <div class="loading" id="loading">
-        <div class="logos-loading">
-            <img src="FW Logo.png" alt="FW"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none; color:#3b82f6; font-weight:bold;">FW</span>
-            <img src="Altercon LOGO.png" alt="Altercon"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none; color:#d97706; font-weight:bold;">AC</span>
-            <img src="Delservin LOGO.png" alt="Delservin"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none; color:#059669; font-weight:bold;">DS</span>
-        </div>
-        <div class="spinner"></div>
-        <div id="loadingMessage" style="margin-top: 20px; font-size: 16px;">Carregando sistema...</div>
+    <div id="loadingOverlay" class="loading-overlay">
+        <div class="loading-spinner"></div>
+        <div id="loadingText" style="color:#94a3b8;">Carregando sistema...</div>
     </div>
 
     <div class="sidebar">
         <div class="sidebar-header">
-            <img src="FW Logo.png" alt="FW Logo"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <div style="display:none; font-size:24px; font-weight:bold; color:#3b82f6;">FW</div>
-            <h3>Planejamento e Controle de Manutenção 1.0_rev04</h3>
+            <img src="FW Logo.png" alt="FW Logo" onerror="this.style.display='none'">
+            <h3>Sistema P.C. e Documentações</h3>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-item active" onclick="window.changePage('dashboard', event)"><i
-                    class="fas fa-tachometer-alt"></i><span>Dashboard</span></div>
-            <div class="menu-item" onclick="window.changePage('projetos', event)"><i
-                    class="fas fa-hard-hat"></i><span>Projetos</span></div>
-            <div class="menu-item" onclick="window.changePage('ss', event)"><i
-                    class="fas fa-clipboard-list"></i><span>SS/Ordem
-                    de Compra</span></div>
-            <div class="menu-item" onclick="window.changePage('os', event)"><i class="fas fa-tasks"></i><span>Ordem de
-                    Serviço</span></div>
-            <div class="menu-item" onclick="window.changePage('rdo', event)"><i class="fas fa-file-alt"></i><span>Gerar
-                    RDO</span></div>
-            <div class="menu-item" onclick="window.changePage('hht', event)"><i class="fas fa-users"></i><span>HHT/Mão
-                    de
-                    Obra</span></div>
-            <div class="menu-item" onclick="window.changePage('cronograma', event)"><i
-                    class="fas fa-calendar-alt"></i><span>Cronograma</span></div>
-            <div class="menu-item" onclick="window.changePage('indicadores', event)"><i
-                    class="fas fa-chart-line"></i><span>Indicadores</span></div>
+            <div class="menu-item active" onclick="changePage('dashboard', event)"><i class="fas fa-chart-pie"></i><span>Dashboard</span></div>
+            <div class="menu-item" onclick="changePage('eap', event)"><i class="fas fa-diagram-project"></i><span>EAP - Estrutura</span></div>
+            <div class="menu-item" onclick="changePage('documentos', event)"><i class="fas fa-folder-open"></i><span>Documentos</span></div>
+            <div class="menu-item" onclick="changePage('upload', event)"><i class="fas fa-upload"></i><span>Upload</span></div>
+            <div class="menu-item" onclick="changePage('pedido_compra', event)"><i class="fas fa-shopping-cart"></i><span>Pedido de Compra</span></div>
         </div>
         <div class="sidebar-footer">
-            <img src="Delservin LOGO.png" alt="Delservin"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none; color:#059669;">Delservin</span>
-            <img src="Altercon LOGO.png" alt="Altercon"
-                onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-            <span style="display:none; color:#d97706;">Altercon</span>
+            <img src="Delservin LOGO.png" alt="Delservin">
+            <img src="Altercon LOGO.png" alt="Altercon">
         </div>
     </div>
 
     <div class="main-content">
         <div class="top-bar">
-            <div class="page-title" id="pageTitle">Dashboard</div>
+            <div class="page-title" id="pageTitle">Dashboard EAP</div>
             <div class="logos-secundarios">
-                <img src="Delservin LOGO.png" alt="Delservin"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span style="display:none; color:#94a3b8;">Delservin</span>
-                <img src="Altercon LOGO.png" alt="Altercon"
-                    onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
-                <span style="display:none; color:#94a3b8;">Altercon</span>
+                <img src="Delservin LOGO.png" alt="Delservin">
+                <img src="Altercon LOGO.png" alt="Altercon">
             </div>
         </div>
-
-        <div class="info-bar" id="infoBar" style="display: none;">
-            <i class="fas fa-cloud" id="infoIcon"></i>
-            <span id="infoMessage">Sistema carregado</span>
-        </div>
-
+        <div class="info-bar" id="infoBar" style="display: none;"><i class="fas fa-info-circle"></i><span id="infoMessage"></span></div>
         <div class="content-container" id="contentArea"></div>
     </div>
 
     <script>
-        // Configuração do Supabase - DEFINIR ANTES DE USAR
-        window.SUPABASE_URL = 'https://azlgjkjzitbolyfyyaip.supabase.co';
-        window.SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6bGdqa2p6aXRib2x5Znl5YWlwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjY0MTQ1NjcsImV4cCI6MjA4MTk5MDU2N30.PefjFNb5Phq2ZkR26-RlJdb-pnFUbYp1PxjYwI1LUpA';
-
-        // Inicializar cliente Supabase
-        window.supabaseClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
-
-        // Variáveis globais
-        window.projetos = [
-            {
-                id: 1,
-                nome: 'SUZANO IMPERATRIZ - NR-17 EIA SECAGEM',
-                logo: 'Suzano LOGO 2.png',
-                progresso: 0,
-                inicio: '2025-09-15',
-                fim: '2026-01-15',
-                responsavel: 'J. Emílio M. Gálvez',
-                hht: {
-                    previstas: 0,
-                    realizadas: 0,
-                    produtividade: 0,
-                    diasSemAcidente: 0,
-                    taxaFrequencia: 0,
-                    taxaGravidade: 0
-                },
-                progressoPacotes: {
-                    engenharia: 0,
-                    fornecimento: 0,
-                    montagem: 0,
-                    comissionamento: 0
-                },
-                dadosHHT: {
-                    hhtSemanas: Array(17).fill(0),
-                    hhtAcumuladoSemanas: Array(17).fill(0),
-                    moiSemanas: Array(17).fill(0),
-                    modSemanas: Array(17).fill(0),
-                    efetivoSemanas: Array(17).fill(0),
-                    semanas: ['14/09', '21/09', '28/09', '05/10', '12/10', '19/10', '26/10', '02/11', '09/11', '16/11', '23/11', '30/11', '07/12', '14/12', '21/12', '28/12', '04/01'],
-                    hhtSemanaAtual: 0,
-                    hhtAcumulado: 0,
-                    mediaSemanal: 0,
-                    diasSemAcidente: 0,
-                    caf: 0,
-                    saf: 0,
-                    osa: 0,
-                    taxaCAF: 0,
-                    taxaSAF: 0,
-                    taxaTotal: 0,
-                    ocorrenciaAmbiental: 0,
-                    desvios: 0
-                },
-                curvaS: [],
-                cronograma: []
-            }
+        // Configuração Supabase
+        const SUPABASE_URL = 'https://eokhafnfmynhridksnuh.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVva2hhZm5mbXluaHJpZGtzbnVoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzQ1MjE2MDAsImV4cCI6MjA1MDA5NzYwMH0.0z0ZvZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZmZm';
+        let supabaseClient = null;
+        
+        // EAP Estrutura
+        const eapStructure = [
+            { code: '1.0', name: 'Projeto Industrial - Fábrica', level: 1, parent: null },
+            { code: '1.1', name: 'Gestão de Projeto', level: 2, parent: '1.0' },
+            { code: '1.1.1', name: 'Plano de Projeto e Cronograma', level: 3, parent: '1.1' },
+            { code: '1.1.2', name: 'Relatórios de Progresso', level: 3, parent: '1.1' },
+            { code: '1.1.3', name: 'Documentação de Riscos', level: 3, parent: '1.1' },
+            { code: '1.2', name: 'Engenharia - Documentos Técnicos', level: 2, parent: '1.0' },
+            { code: '1.2.1', name: 'Engenharia Básica (P&IDs, Fluxogramas)', level: 3, parent: '1.2' },
+            { code: '1.2.2', name: 'Engenharia Detalhada', level: 3, parent: '1.2' },
+            { code: '1.2.3', name: 'Data Sheets de Equipamentos', level: 3, parent: '1.2' },
+            { code: '1.3', name: 'Aquisições - Documentos de Compras', level: 2, parent: '1.0' },
+            { code: '1.3.1', name: 'Requisições de Materiais', level: 3, parent: '1.3' },
+            { code: '1.3.2', name: 'Ordens de Compra', level: 3, parent: '1.3' },
+            { code: '1.3.3', name: 'Pedidos de Compra (PC)', level: 3, parent: '1.3' },
+            { code: '1.4', name: 'Construção e Montagem', level: 2, parent: '1.0' },
+            { code: '1.4.1', name: 'Planos de Rigging', level: 3, parent: '1.4' },
+            { code: '1.4.2', name: 'Procedimentos de Solda', level: 3, parent: '1.4' },
+            { code: '1.4.3', name: 'Diários de Obra (RDO)', level: 3, parent: '1.4' },
+            { code: '1.5', name: 'Comissionamento e Entrega', level: 2, parent: '1.0' },
+            { code: '1.5.1', name: 'Protocolos de Teste', level: 3, parent: '1.5' },
+            { code: '1.5.2', name: 'Manuais de Operação (As-Built)', level: 3, parent: '1.5' }
         ];
-
-        // Funções de UI
-        window.showLoading = function (message = 'Carregando...') {
-            document.getElementById('loadingMessage').innerHTML = message;
-            document.getElementById('loading').classList.add('active');
+        
+        let documentos = [];
+        let selectedEapNode = null;
+        
+        // Pedidos de Compra
+        let purchaseOrders = [
+            { id: 38454, numero: '38454', data: '2024-04-05', fornecedor: 'Zagar Comercio de Ferramentas e Ferragens LTDA EPP', cnpj: '01.864.998/0001-35', vendedor: 'Robinson', centroCusto: 'PC 4501089929 - ANDRITZ - Bracell Lençóis Paulista - Montagem Tissue', requisitante: 'Fabio Mendes', condicaoPagamento: 'Boleto', status: 'Em Andamento', items: [
+                { descricao: 'TRENA 5M LUFKIN', unidade: 'und', quantidade: 6, precoUnitario: 24.21, total: 145.26 },
+                { descricao: 'BALDE PLAST PEDREIRO 12L', unidade: 'und', quantidade: 1, precoUnitario: 19.30, total: 19.30 },
+                { descricao: 'FUNIL FLEX PLAST', unidade: 'und', quantidade: 1, precoUnitario: 29.42, total: 29.42 },
+                { descricao: 'NIVEL BASE MAGNETICA KALA 30CM', unidade: 'und', quantidade: 5, precoUnitario: 35.22, total: 176.10 }
+            ], desconto: 10.57, frete: 0 }
+        ];
+        let nextPoId = 38455;
+        
+        function showLoading(msg) { 
+            const el = document.getElementById('loadingText');
+            if (el) el.textContent = msg; 
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.remove('hidden'); 
         }
-
-        window.hideLoading = function () {
-            document.getElementById('loading').classList.remove('active');
+        function hideLoading() { 
+            const overlay = document.getElementById('loadingOverlay');
+            if (overlay) overlay.classList.add('hidden'); 
         }
-
-        window.showInfo = function (message, type = 'info') {
-            const infoBar = document.getElementById('infoBar');
-            const infoMessage = document.getElementById('infoMessage');
-            const infoIcon = document.getElementById('infoIcon');
-
-            infoMessage.innerHTML = message;
-
-            if (type === 'success') {
-                infoBar.style.background = '#065f46';
-                infoIcon.className = 'fas fa-check-circle';
-            } else if (type === 'error') {
-                infoBar.style.background = '#7f1d1d';
-                infoIcon.className = 'fas fa-exclamation-circle';
-            } else {
-                infoBar.style.background = '#1e3a5f';
-                infoIcon.className = 'fas fa-cloud';
-            }
-
-            infoBar.style.display = 'flex';
-
-            setTimeout(() => {
-                infoBar.style.display = 'none';
-            }, 5000);
+        function showInfo(msg, type = 'info') { 
+            let bar = document.getElementById('infoBar'), msgSpan = document.getElementById('infoMessage');
+            if (!bar || !msgSpan) return;
+            msgSpan.textContent = msg;
+            bar.style.background = type === 'success' ? '#065f46' : type === 'error' ? '#7f1d1d' : '#1e3a5f';
+            bar.style.display = 'flex';
+            setTimeout(() => bar.style.display = 'none', 4000);
         }
-
-        // Função para carregar dados do Supabase
-        // Função para carregar dados do Supabase
-        window.carregarDadosSupabase = async function () {
+        
+        async function loadDocumentosFromSupabase() {
+            if (!supabaseClient) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
             try {
-                window.showLoading('Carregando dados do Supabase...');
-
-                // Carregar dados do projeto
-                const { data: projetoData, error: projetoError } = await window.supabaseClient
-                    .from('projetos')
-                    .select('*')
-                    .eq('id', 1);
-
-                if (projetoError) throw projetoError;
-
-                if (projetoData && projetoData.length > 0) {
-                    window.projetos[0].nome = projetoData[0].nome;
-                    window.projetos[0].inicio = projetoData[0].inicio;
-                    window.projetos[0].fim = projetoData[0].fim;
-                    window.projetos[0].responsavel = projetoData[0].responsavel;
-                }
-
-                // Carregar cronograma
-                const { data: cronogramaData, error: cronogramaError } = await window.supabaseClient
-                    .from('cronograma_r17suzano')
-                    .select('*');
-
-                if (cronogramaError) throw cronogramaError;
-
-                if (cronogramaData && cronogramaData.length > 0) {
-                    window.projetos[0].cronograma = cronogramaData.map(item => ({
-                        atividade: item.nome_tarefa,
-                        inicio: item.inicio_lb,
-                        fim: item.termino_lb,
-                        progresso: item.percent_real
-                    }));
-
-                    // Calcular progresso ponderado
-                    let progressoPonderado = 0;
-                    let pesoTotal = 0;
-
-                    cronogramaData.forEach(item => {
-                        progressoPonderado += (item.peso_percent * item.percent_real);
-                        pesoTotal += item.peso_percent;
-                    });
-
-                    if (pesoTotal > 0) {
-                        window.projetos[0].progresso = Math.round(progressoPonderado / pesoTotal);
-                    }
-
-                    // Atualizar progresso dos pacotes
-                    cronogramaData.forEach(item => {
-                        if (item.nome_tarefa.includes('Engenharia')) {
-                            window.projetos[0].progressoPacotes.engenharia = item.percent_real;
-                        } else if (item.nome_tarefa.includes('Fornecimento')) {
-                            window.projetos[0].progressoPacotes.fornecimento = item.percent_real;
-                        } else if (item.nome_tarefa.includes('Construção') || item.nome_tarefa.includes('Montagem')) {
-                            window.projetos[0].progressoPacotes.montagem = item.percent_real;
-                        } else if (item.nome_tarefa.includes('Comissionamento')) {
-                            window.projetos[0].progressoPacotes.comissionamento = item.percent_real;
-                        }
-                    });
-                }
-
-                // Carregar dados HHT - VERSÃO SIMPLIFICADA
-                const { data: hhtData, error: hhtError } = await window.supabaseClient
-                    .from('hht_dados_r17suzano')
-                    .select('*');
-
-                if (hhtError) throw hhtError;
-
-                console.log('Dados HHT brutos do banco:', hhtData);
-
-                if (hhtData && hhtData.length > 0) {
-                    // Percorrer cada registro
-                    for (let i = 0; i < hhtData.length; i++) {
-                        const item = hhtData[i];
-                        const descritivo = item.descritivo;
-
-                        // Array com as 17 semanas
-                        const semanas = [
-                            Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                            Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                            Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                            Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                            Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                            Number(item.semana_16), Number(item.semana_17)
-                        ];
-
-                        console.log(`Processando: ${descritivo}`, semanas);
-
-                        // Atribuir baseado no descritivo
-                        if (descritivo === 'Hht(x1000)') {
-                            window.projetos[0].dadosHHT.hhtSemanas = [...semanas];
-                            window.projetos[0].dadosHHT.hhtSemanaAtual = Number(item.semana_atual) || 0;
-                            window.projetos[0].dadosHHT.hhtAcumulado = Number(item.acumulado) || 0;
-                            window.projetos[0].hht.realizadas = (Number(item.acumulado) || 0) * 1000;
-                            console.log('✅ HHT Semanas atribuído:', window.projetos[0].dadosHHT.hhtSemanas);
-                        }
-                        else if (descritivo === 'Hht Acumulado') {
-                            window.projetos[0].dadosHHT.hhtAcumuladoSemanas = [...semanas];
-                            console.log('✅ HHT Acumulado atribuído:', window.projetos[0].dadosHHT.hhtAcumuladoSemanas);
-                        }
-                        else if (descritivo === 'CAF - Acidentes Com Afastamentos') {
-                            window.projetos[0].dadosHHT.caf = Number(item.acumulado) || 0;
-                        }
-                        else if (descritivo === 'SAF - Acidentes Sem Afastamentos') {
-                            window.projetos[0].dadosHHT.saf = Number(item.acumulado) || 0;
-                        }
-                        else if (descritivo === 'OSA - Ocorrência de Simples Atendimento') {
-                            window.projetos[0].dadosHHT.osa = Number(item.acumulado) || 0;
-                        }
-                        else if (descritivo === 'Taxa de Freq. (CAF e SAF)') {
-                            window.projetos[0].dadosHHT.taxaTotal = Number(item.semana_atual) || 0;
-                            window.projetos[0].hht.taxaFrequencia = Number(item.semana_atual) || 0;
-                        }
-                        else if (descritivo === 'Taxa de Freq. CAF') {
-                            window.projetos[0].dadosHHT.taxaCAF = Number(item.semana_atual) || 0;
-                        }
-                        else if (descritivo === 'Taxa de Freq. SAF') {
-                            window.projetos[0].dadosHHT.taxaSAF = Number(item.semana_atual) || 0;
-                        }
-                    }
-
-                    // Log para verificar se os dados foram atribuídos
-                    // Log para verificar se os dados foram atribuídos
-                    console.log('📊 VERIFICAÇÃO FINAL:');
-                    console.log('hhtSemanas:', JSON.stringify(window.projetos[0].dadosHHT.hhtSemanas));
-                    console.log('hhtAcumuladoSemanas:', JSON.stringify(window.projetos[0].dadosHHT.hhtAcumuladoSemanas));
-                    console.log('MOI Semanas:', JSON.stringify(window.projetos[0].dadosHHT.moiSemanas));
-                    console.log('MOD Semanas:', JSON.stringify(window.projetos[0].dadosHHT.modSemanas));
-                    console.log('Efetivo Semanas:', JSON.stringify(window.projetos[0].dadosHHT.efetivoSemanas));
-                }
-
-                // CARREGAR DADOS MOI/MOD - VERSÃO SUPER SIMPLES
-                console.log('🔵 CARREGANDO MOI/MOD...');
-
-                const { data: moimodData, error: moimodError } = await window.supabaseClient
-                    .from('moimod_dados_r17suzano')
-                    .select('*');
-
-                if (moimodError) {
-                    console.error('Erro MOI/MOD:', moimodError);
-                    throw moimodError;
-                }
-
-                console.log('📦 Dados MOI/MOD brutos:', moimodData);
-
-                if (moimodData && moimodData.length > 0) {
-                    // ATRIBUIÇÃO DIRETA - sem frescura
-                    for (let i = 0; i < moimodData.length; i++) {
-                        const item = moimodData[i];
-
-                        if (item.tipo === 'MOI Total') {
-                            window.projetos[0].dadosHHT.moiSemanas = [
-                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                                Number(item.semana_16), Number(item.semana_17)
-                            ];
-                            console.log('✅ MOI atribuído:', window.projetos[0].dadosHHT.moiSemanas);
-                        }
-
-                        if (item.tipo === 'MOD Total') {
-                            window.projetos[0].dadosHHT.modSemanas = [
-                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                                Number(item.semana_16), Number(item.semana_17)
-                            ];
-                            console.log('✅ MOD atribuído:', window.projetos[0].dadosHHT.modSemanas);
-                        }
-
-                        if (item.tipo === 'Efetivo Total') {
-                            window.projetos[0].dadosHHT.efetivoSemanas = [
-                                Number(item.semana_1), Number(item.semana_2), Number(item.semana_3),
-                                Number(item.semana_4), Number(item.semana_5), Number(item.semana_6),
-                                Number(item.semana_7), Number(item.semana_8), Number(item.semana_9),
-                                Number(item.semana_10), Number(item.semana_11), Number(item.semana_12),
-                                Number(item.semana_13), Number(item.semana_14), Number(item.semana_15),
-                                Number(item.semana_16), Number(item.semana_17)
-                            ];
-                            console.log('✅ Efetivo atribuído:', window.projetos[0].dadosHHT.efetivoSemanas);
-                        }
-                    }
-                }
-
-                console.log('🔵 VERIFICAÇÃO FINAL MOI/MOD:');
-                console.log('MOI:', window.projetos[0].dadosHHT.moiSemanas);
-                console.log('MOD:', window.projetos[0].dadosHHT.modSemanas);
-                console.log('Efetivo:', window.projetos[0].dadosHHT.efetivoSemanas);
-
-                // Calcular média semanal HHT
-                const valoresPositivos = window.projetos[0].dadosHHT.hhtSemanas.filter(v => v > 0);
-                window.projetos[0].dadosHHT.mediaSemanal = valoresPositivos.length > 0 ?
-                    (valoresPositivos.reduce((a, b) => a + b, 0) / valoresPositivos.length).toFixed(1) : 0;
-
-                // Calcular dias sem acidente
-                window.projetos[0].dadosHHT.diasSemAcidente = (window.projetos[0].dadosHHT.caf === 0 && window.projetos[0].dadosHHT.saf === 0) ? 30 : 0;
-                window.projetos[0].hht.diasSemAcidente = window.projetos[0].dadosHHT.diasSemAcidente;
-
-                console.log('Dados carregados com sucesso:', window.projetos[0]);
-
-                window.hideLoading();
-                window.showInfo('Dados carregados do Supabase com sucesso!', 'success');
-
+                const { data, error } = await supabaseClient.from('documentos').select('*').order('data_upload', { ascending: false });
+                if (error) throw error;
+                documentos = data || [];
+                return documentos;
             } catch (error) {
-                window.hideLoading();
-                window.showInfo('Erro ao carregar dados do Supabase: ' + error.message, 'error');
-                console.error('Erro Supabase:', error);
+                console.error('Erro:', error);
+                return [];
             }
-
-            // Carregar dados da Curva S
-            const { data: curvaSData, error: curvaSError } = await window.supabaseClient
-                .from('curva_s_r17suzano')
-                .select('*')
-                .order('id');
-
-            if (curvaSError) throw curvaSError;
-
-            if (curvaSData && curvaSData.length > 0) {
-                window.projetos[0].curvaS = curvaSData.map(item => ({
-                    mes: item.mes,
-                    dia: item.dia,
-                    realPeriodo: item.real_periodo,
-                    lbPeriodo: item.lb_periodo,
-                    forecast: item.forecast,
-                    realAcum: item.real_acum,
-                    lbAcum: item.lb_acum,
-                    forecast2: item.forecast2
-                }));
-                console.log('Curva S carregada:', window.projetos[0].curvaS.length, 'registros');
-            }
-
-
         }
-        // DEBUG - Adicione esta função após carregarDadosSupabase
-        window.debugDados = function () {
-            console.log('=== DEBUG DOS DADOS ===');
-            console.log('Projeto:', window.projetos[0]);
-            console.log('Cronograma:', window.projetos[0].cronograma);
-            console.log('Dados HHT:', window.projetos[0].dadosHHT);
-            console.log('HHT Semanas:', window.projetos[0].dadosHHT.hhtSemanas);
-            console.log('HHT Acumulado:', window.projetos[0].dadosHHT.hhtAcumuladoSemanas);
-            console.log('MOI Semanas:', window.projetos[0].dadosHHT.moiSemanas);
-            console.log('MOD Semanas:', window.projetos[0].dadosHHT.modSemanas);
-            console.log('Efetivo Semanas:', window.projetos[0].dadosHHT.efetivoSemanas);
-            console.log('=======================');
-        }
-
-        // Modifique o final da função carregarDadosSupabase para incluir o debug:
-        // No final, antes do hideLoading, adicione:
-        window.debugDados();
-
-
-
-        // Função para mudar de página
-        window.changePage = function (page, event) {
-            if (event) {
-                document.querySelectorAll('.menu-item').forEach(item => item.classList.remove('active'));
-                event.currentTarget.classList.add('active');
-            }
-
-            const titles = {
-                'dashboard': 'Dashboard',
-                'projetos': 'Projetos',
-                'ss': 'Abertura de SS/Ordem de Compra',
-                'os': 'Ordem de Serviço',
-                'rdo': 'Gerar RDO',
-                'hht': 'HHT e Mão de Obra',
-                'cronograma': 'Cronograma',
-                'indicadores': 'Indicadores e Controles'
-            };
-            document.getElementById('pageTitle').textContent = titles[page];
-
-            window.loadContent(page);
-        }
-
-        // Função para carregar conteúdo
-        window.loadContent = function (page) {
-            const contentArea = document.getElementById('contentArea');
-
-            contentArea.style.opacity = '0';
-            contentArea.style.transition = 'opacity 0.3s ease';
-
-            setTimeout(() => {
-                switch (page) {
-                    case 'dashboard': contentArea.innerHTML = window.renderDashboard(); break;
-                    case 'projetos': contentArea.innerHTML = window.renderProjetos(); break;
-                    case 'ss': contentArea.innerHTML = window.renderSS(); break;
-                    case 'os': contentArea.innerHTML = window.renderOS(); break;
-                    case 'rdo': contentArea.innerHTML = window.renderRDO(); break;
-                    case 'hht': contentArea.innerHTML = window.renderHHT(); break;
-                    case 'cronograma': contentArea.innerHTML = window.renderCronogramaGeral(); break;
-                    case 'indicadores': contentArea.innerHTML = window.renderIndicadores(); break;
-                }
-
-                contentArea.style.opacity = '1';
-
-                setTimeout(() => {
-                    window.initializeCharts();
-                    if (page === 'hht') {
-                        setTimeout(() => {
-                            const dados = window.projetos[0]?.dadosHHT;
-                            if (dados) window.inicializarGraficosHHT(dados);
-                        }, 500);
-                    }
-                }, 500);
-            }, 300);
-        }
-
-        // Funções de renderização
-        window.renderGauge = function (progresso) {
-            const degrees = (progresso / 100) * 180;
-            let corInicio, corFim;
-            if (progresso === 100) {
-                corInicio = '#34d399';
-                corFim = '#6ee7b7';
-            } else {
-                corInicio = '#3b82f6';
-                corFim = '#60a5fa';
-            }
-
-            return `
-                <div class="gauge-wrapper">
-                    <div class="gauge-container">
-                        <div class="gauge-bg">
-                            <div class="gauge-fill" 
-                                 style="--progress-deg: ${degrees}deg; 
-                                        --cor-inicio: ${corInicio}; 
-                                        --cor-fim: ${corFim};">
-                            </div>
+        
+        function getDocumentsByEapCode(eapCode) { return documentos.filter(doc => doc.eap_code === eapCode); }
+        
+        function renderEapTree(selectedCode = null) {
+            const buildTree = (parentCode) => {
+                const nodes = eapStructure.filter(node => node.parent === parentCode);
+                if (nodes.length === 0) return '';
+                return nodes.map(node => `
+                    <div class="eap-node">
+                        <div class="eap-item ${selectedCode === node.code ? 'active' : ''}" onclick="selectEapNode('${node.code}')">
+                            <span class="eap-code">${node.code}</span>
+                            <span class="eap-name">${node.name}</span>
+                            <span class="eap-count">${getDocumentsByEapCode(node.code).length} docs</span>
                         </div>
-                        <div class="gauge-cover">
-                            <span class="gauge-value ${progresso === 100 ? 'text-success' : ''}">${progresso}%</span>
-                            <span class="gauge-label">Progresso</span>
-                        </div>
+                        ${buildTree(node.code)}
                     </div>
-                </div>
-            `;
+                `).join('');
+            };
+            return `<div class="eap-tree">${buildTree(null)}</div>`;
         }
-
-        window.renderDashboard = function () {
+        
+        function renderDashboard() {
+            const totalDocs = documentos.length;
+            const eapComDocs = eapStructure.filter(node => getDocumentsByEapCode(node.code).length > 0);
+            const progressoDocumental = eapStructure.length > 0 ? (eapComDocs.length / eapStructure.length * 100).toFixed(1) : 0;
+            const totalPedidos = purchaseOrders.length;
+            const valorTotalPedidos = purchaseOrders.reduce((sum, po) => sum + (po.items.reduce((s,i)=>s+i.total,0) - po.desconto + po.frete), 0);
+            
             return `
                 <div class="grid-3">
-                    ${window.projetos.map(projeto => `
-                        <div class="card">
-                            <div class="card-header">
-                                <h2>${projeto.nome}</h2>
-                                <span class="badge">${projeto.progresso}%</span>
-                            </div>
-                            ${window.renderGauge(projeto.progresso)}
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
-                                <span class="data-projeto">${new Date(projeto.inicio).toLocaleDateString()} - ${new Date(projeto.fim).toLocaleDateString()}</span>
-                                <img src="${projeto.logo}" class="${projeto.logo === 'Suzano LOGO 2.png' ? 'logo-suzano2' : 'logo-img'}" alt="logo" onerror="this.src='fw_mini.ico'">
-                            </div>
-                        </div>
-                    `).join('')}
+                    <div class="stat-card"><div class="stat-value">${totalDocs}</div><div class="stat-label">Total de Documentos</div></div>
+                    <div class="stat-card"><div class="stat-value">${eapComDocs.length}</div><div class="stat-label">EAPs com Documentos</div></div>
+                    <div class="stat-card"><div class="stat-value">${progressoDocumental}%</div><div class="stat-label">Progresso Documental</div></div>
+                </div>
+                <div class="grid-3">
+                    <div class="stat-card"><div class="stat-value">${totalPedidos}</div><div class="stat-label">Pedidos de Compra</div></div>
+                    <div class="stat-card"><div class="stat-value">R$ ${valorTotalPedidos.toLocaleString('pt-BR', {minimumFractionDigits:2})}</div><div class="stat-label">Valor Total em PC</div></div>
+                    <div class="stat-card"><div class="stat-value">${purchaseOrders.filter(p => p.status === 'Em Andamento').length}</div><div class="stat-label">PCs em Andamento</div></div>
                 </div>
                 <div class="card">
-                    <div class="card-header">
-                        <h2>Fluxo de OS</h2>
-                    </div>
-                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 15px; background: #1e293b; border-radius: 8px; color: #94a3b8; border: 1px solid #334155;">
-                        <span>Identificação</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Abertura SS</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Triagem</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Gerar OS</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Programação</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Execução</span> <i class="fas fa-arrow-right" style="color:#3b82f6;"></i>
-                        <span>Fechamento</span>
-                    </div>
+                    <div class="card-header"><h2><i class="fas fa-diagram-project"></i> EAP com Documentos</h2></div>
+                    <div class="table-responsive"><table style="width:100%"><thead><tr><th>Código EAP</th><th>Nome</th><th>Documentos</th> </thead><tbody>${eapComDocs.map(node => `
+
+
+<td><strong>${node.code}</strong>${node.name}<span class="badge">${getDocumentsByEapCode(node.code).length}</span>`).join('')}</tbody></table></div>
                 </div>
             `;
         }
-
-        window.renderProjetos = function () {
-            return window.projetos.map((projeto, index) => `
-                <div class="card">
-                    <div class="card-header">
-                        <h2>${projeto.nome}</h2>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span class="badge">${projeto.progresso}%</span>
-                            <img src="${projeto.logo}" class="${projeto.logo === 'Suzano LOGO 2.png' ? 'logo-suzano2' : 'logo-img'}" alt="logo" onerror="this.src='fw_mini.ico'">
-                        </div>
-                    </div>
-                    
-                    <div class="tabs">
-                        <div class="tab active" onclick="window.showProjectTab(this, 'visao-${projeto.id}')">Visão Geral</div>
-                        <div class="tab" onclick="window.showProjectTab(this, 'eap-${projeto.id}')">EAP</div>
-                        <div class="tab" onclick="window.showProjectTab(this, 'progresso-${projeto.id}')">Progresso</div>
-                        <div class="tab" onclick="window.showProjectTab(this, 'cronograma-${projeto.id}')">Cronograma</div>
-                        <div class="tab" onclick="window.showProjectTab(this, 'hht-${projeto.id}')">HHT/Segurança</div>
-                        <div class="tab" onclick="window.showProjectTab(this, 'curva-${projeto.id}')">Curva S</div>
-                    </div>
-
-                    <div id="visao-${projeto.id}" class="tab-content" style="display: block; opacity: 1;">
-                        <div class="grid-2">
-                            <div>
-                                <h3 style="color:#60a5fa; margin-bottom:10px;">Informações Gerais</h3>
-                                <table>
-                                    <tr><td style="border:none;"><strong>Início:</strong></td><td style="border:none;">${new Date(projeto.inicio).toLocaleDateString()}</td></tr>
-                                    <tr><td style="border:none;"><strong>Término:</strong></td><td style="border:none;">${new Date(projeto.fim).toLocaleDateString()}</td></tr>
-                                    <tr><td style="border:none;"><strong>Duração:</strong></td><td style="border:none;">${Math.round((new Date(projeto.fim) - new Date(projeto.inicio)) / (1000 * 60 * 60 * 24))} dias</td></tr>
-                                    <tr><td style="border:none;"><strong>Responsável:</strong></td><td style="border:none;">${projeto.responsavel}</td></tr>
-                                </table>
-                            </div>
-                            <div>
-                                <h3 style="color:#60a5fa; margin-bottom:10px;">Indicadores</h3>
-                                <table>
-                                    <tr><td style="border:none;"><strong>Progresso:</strong></td><td style="border:none;">${projeto.progresso}%</td></tr>
-                                    <tr><td style="border:none;"><strong>Desvio:</strong></td><td style="border:none;">${projeto.progresso - 50 > 0 ? '+' : ''}${projeto.progresso - 50}%</td></tr>
-                                    <tr><td style="border:none;"><strong>Status:</strong></td><td style="border:none;">${projeto.progresso > 70 ? 'Avançado' : projeto.progresso > 30 ? 'Em Andamento' : 'Inicial'}</td></tr>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="eap-${projeto.id}" class="tab-content" style="display: none; opacity: 0;">
-                        <pre style="background: #1e293b; padding: 20px; border-radius: 8px; color:#e1e9f0; border:1px solid #334155;">
-1.0 Gestão do Projeto
-    1.1 Planejamento
-    1.2 Controle
-2.0 Engenharia
-    2.1 Projetos
-    2.2 Detalhamento
-3.0 Suprimentos
-    3.1 Compras
-    3.2 Logística
-4.0 Montagem
-    4.1 Elétrica
-    4.2 Mecânica
-    4.3 Instrumentação
-5.0 Comissionamento
-                        </pre>
-                    </div>
-
-                    <div id="progresso-${projeto.id}" class="tab-content" style="display: none; opacity: 0;">
-                        <table>
-                            <tr><th>Pacote</th><th>Peso</th><th>Progresso</th><th></th></tr>
-                            <tr><td>Engenharia</td><td>15%</td><td>${projeto.progressoPacotes.engenharia}%</td><td><div class="progress"><div class="progress-bar" style="width: ${projeto.progressoPacotes.engenharia}%"></div></div></td></tr>
-                            <tr><td>Fornecimento</td><td>25%</td><td>${projeto.progressoPacotes.fornecimento}%</td><td><div class="progress"><div class="progress-bar" style="width: ${projeto.progressoPacotes.fornecimento}%"></div></div></td></tr>
-                            <tr><td>Montagem</td><td>45%</td><td>${projeto.progressoPacotes.montagem}%</td><td><div class="progress"><div class="progress-bar" style="width: ${projeto.progressoPacotes.montagem}%"></div></div></td></tr>
-                            <tr><td>Comissionamento</td><td>15%</td><td>${projeto.progressoPacotes.comissionamento}%</td><td><div class="progress"><div class="progress-bar" style="width: ${projeto.progressoPacotes.comissionamento}%"></div></div></td></tr>
-                        </table>
-                    </div>
-
-                    <div id="cronograma-${projeto.id}" class="tab-content" style="display: none; opacity: 0;">
-                        <table>
-                            <tr><th>Atividade</th><th>Início</th><th>Fim</th><th>Progresso</th></tr>
-                            ${projeto.cronograma.map(item => `
-                                <tr>
-                                    <td>${item.atividade}</td>
-                                    <td>${new Date(item.inicio).toLocaleDateString()}</td>
-                                    <td>${new Date(item.fim).toLocaleDateString()}</td>
-                                    <td>
-                                        <div style="display: flex; align-items: center; gap: 10px;">
-                                            <div class="progress" style="width: 100px;"><div class="progress-bar" style="width: ${item.progresso}%;"></div></div>
-                                            ${item.progresso}%
-                                        </div>
-                                    </td>
-                                </tr>
-                            `).join('')}
-                        </table>
-                    </div>
-
-                    <div id="hht-${projeto.id}" class="tab-content" style="display: none; opacity: 0;">
-                        <div class="grid-2">
-                            <div class="hht-card">
-                                <h4>Horas Trabalhadas</h4>
-                                <div class="hht-value">${projeto.hht.realizadas} h</div>
-                                <div class="hht-label">de ${projeto.hht.previstas} h previstas</div>
-                                <div style="margin-top: 10px;">
-                                    <div class="progress" style="width: 100%;">
-                                        <div class="progress-bar" style="width: ${projeto.hht.previstas > 0 ? (projeto.hht.realizadas / projeto.hht.previstas * 100) : 0}%;"></div>
-                                    </div>
-                                    <div style="display: flex; justify-content: space-between; margin-top: 5px;">
-                                        <span>${projeto.hht.previstas > 0 ? Math.round(projeto.hht.realizadas / projeto.hht.previstas * 100) : 0}%</span>
-                                        <span>Produtividade: ${projeto.hht.produtividade}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="hht-card">
-                                <h4>Segurança</h4>
-                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                                    <div>
-                                        <div class="hht-value">${projeto.hht.diasSemAcidente}</div>
-                                        <div class="hht-label">Dias sem acidente</div>
-                                    </div>
-                                    <div>
-                                        <div class="hht-value">${projeto.hht.taxaFrequencia}</div>
-                                        <div class="hht-label">Tx Frequência</div>
-                                    </div>
-                                    <div>
-                                        <div class="hht-value">${projeto.hht.taxaGravidade}</div>
-                                        <div class="hht-label">Tx Gravidade</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="curva-${projeto.id}" class="tab-content" style="display: none; opacity: 0;">
-                        <div class="chart-legend">
-                            <div class="legend-item"><div class="legend-color real"></div><span>Real Acumulado</span></div>
-                            <div class="legend-item"><div class="legend-color lb"></div><span>Line Base</span></div>
-                            <div class="legend-item"><div class="legend-color forecast"></div><span>Forecast</span></div>
-                        </div>
-                        <div class="chart-container"><canvas id="curvaSChart-${projeto.id}"></canvas></div>
-                        <div style="margin-top: 20px; max-height: 200px; overflow-y: auto;">
-                            <table style="font-size: 12px;">
-                                <tr><th>Data</th><th>Real %</th><th>LB %</th><th>Forecast</th></tr>
-                                ${projeto.curvaS.map(item => `
-                                    <tr><td>${item.mes}/${item.dia}</td><td>${item.realAcum}%</td><td>${item.lbAcum}%</td><td>${item.forecast2}%</td></tr>
-                                `).join('')}
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `).join('');
+        
+        function renderEapPage() {
+            return `<div class="grid-2"><div class="card"><div class="card-header"><h2><i class="fas fa-diagram-project"></i> Estrutura Analítica do Projeto (EAP)</h2></div><div style="max-height:70vh; overflow-y:auto">${renderEapTree(selectedEapNode)}</div></div><div class="card"><div class="card-header"><h2><i class="fas fa-file-alt"></i> Documentos da EAP Selecionada</h2></div><div id="eap-documents-list">${selectedEapNode ? renderDocumentsByEap(selectedEapNode) : '<div style="text-align:center;padding:40px">Selecione um item da EAP</div>'}</div></div></div>`;
         }
-
-        window.renderSS = function () {
-            return `
-                <div class="card">
-                    <div class="card-header"><h2>Abertura de Solicitação de Serviço/Compra</h2></div>
-                    <div class="grid-2">
-                        <div>
-                            <div class="form-group"><label>Nº SS:</label><input type="text" class="form-control" value="SS2026001" readonly></div>
-                            <div class="form-group"><label>Solicitante:</label><input type="text" class="form-control" placeholder="Nome"></div>
-                            <div class="form-group"><label>Data:</label><input type="date" class="form-control" value="${new Date().toISOString().split('T')[0]}"></div>
-                        </div>
-                        <div>
-                            <div class="form-group"><label>Projeto:</label><select class="form-control">${window.projetos.map(p => `<option>${p.nome}</option>`).join('')}</select></div>
-                            <div class="form-group"><label>Descrição:</label><textarea class="form-control" rows="3" placeholder="Descreva a solicitação"></textarea></div>
-                        </div>
-                    </div>
-                    <button class="btn btn-primary" onclick="alert('SS aberta com sucesso!')"><i class="fas fa-save"></i> Abrir Solicitação</button>
-                </div>
-            `;
+        
+        function renderDocumentsByEap(eapCode) {
+            const node = eapStructure.find(n => n.code === eapCode);
+            const docs = getDocumentsByEapCode(eapCode);
+            if (!node) return '<div style="text-align:center;padding:40px">EAP não encontrada</div>';
+            if (docs.length === 0) return `<div style="text-align:center;padding:40px">Nenhum documento para <strong>${node.code} - ${node.name}</strong></div>`;
+            return docs.map(doc => `<div class="document-card"><div class="document-icon"><i class="fas fa-file-pdf"></i></div><div class="document-info"><div class="document-title">${doc.titulo}</div><div class="document-meta"><span><i class="fas fa-calendar"></i> ${new Date(doc.data_upload).toLocaleDateString()}</span></div><div style="font-size:12px">${doc.descricao || ''}</div></div><div class="document-actions"><button class="btn btn-primary btn-sm" onclick="downloadDocument('${doc.arquivo_url}', '${doc.arquivo_nome}')"><i class="fas fa-download"></i></button></div></div>`).join('');
         }
-
-        window.renderOS = function () {
-            return `
-                <div class="card">
-                    <div class="card-header"><h2>Ordem de Serviço</h2></div>
-                    <div style="border: 2px solid #3b82f6; padding: 20px; border-radius: 8px;">
-                        <div class="grid-4">
-                            <div><label class="form-label" style="color:#94a3b8;">N. OS:</label><input class="form-control" value="OS2026001"></div>
-                            <div><label class="form-label" style="color:#94a3b8;">N. SS:</label><input class="form-control" value="SS2026001"></div>
-                            <div><label class="form-label" style="color:#94a3b8;">DATA:</label><input type="date" class="form-control"></div>
-                            <div><label class="form-label" style="color:#94a3b8;">TURNO:</label><select class="form-control"><option>Manhã</option><option>Tarde</option><option>Noite</option></select></div>
-                        </div>
-                        <div class="form-group"><label>Descrição da Solicitação:</label><textarea class="form-control" rows="2"></textarea></div>
-                        <div class="grid-2"><div><label>Técnico:</label><input class="form-control"></div><div><label>Execução:</label><input class="form-control"></div></div>
-                        <div class="grid-4">
-                            <div><label>Data Conclusão:</label><input type="date" class="form-control"></div>
-                            <div><label>Data Baixa:</label><input type="date" class="form-control"></div>
-                            <div><label>Hora Início:</label><input type="time" class="form-control"></div>
-                            <div><label>Hora Fim:</label><input type="time" class="form-control"></div>
-                        </div>
-                        <div class="form-group">
-                            <label>Materiais:</label>
-                            <div class="grid-4">${Array.from({ length: 8 }, (_, i) => `<input class="form-control" placeholder="${i + 1}-">`).join('')}</div>
-                        </div>
-                        <button class="btn btn-primary" onclick="alert('OS gerada com sucesso!')"><i class="fas fa-save"></i> Gerar OS</button>
-                    </div>
-                </div>
-            `;
+        
+        function selectEapNode(code) { selectedEapNode = code; const div = document.getElementById('eap-documents-list'); if (div) div.innerHTML = renderDocumentsByEap(code); const treeDiv = document.querySelector('.eap-tree'); if (treeDiv) treeDiv.innerHTML = renderEapTree(code); }
+        
+        function renderDocumentosPage() {
+            return `<div class="card"><div class="card-header"><h2><i class="fas fa-folder-open"></i> Todos os Documentos</h2></div><div class="form-group"><label>Filtrar por EAP</label><select class="form-control" id="filterEap" onchange="filterDocuments()"><option value="">Todos</option>${eapStructure.map(node => `<option value="${node.code}">${node.code} - ${node.name}</option>`).join('')}</select></div><div id="all-documents-list">${renderAllDocuments()}</div></div>`;
         }
-
-        window.renderRDO = function () {
-            const hoje = new Date();
-            const ontem = new Date(hoje);
-            ontem.setDate(hoje.getDate() - 1);
-            const dias = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-
-            return `
-                <div class="card">
-                    <div class="card-header"><h2>Gerar Relatório Diário de Obra</h2></div>
-                    <div class="rdo-container">
-                        <div class="rdo-header">RELATÓRIO DIÁRIO DE OBRA (RDO)</div>
-                        <div class="rdo-info">
-                            <div class="rdo-info-grid">
-                                <div class="rdo-field"><label>Nº</label><div class="value">037</div></div>
-                                <div class="rdo-field"><label>DATA</label><div class="value">${ontem.toLocaleDateString()}</div></div>
-                                <div class="rdo-field"><label>DIA</label><div class="value">${dias[ontem.getDay()]}</div></div>
-                                <div class="rdo-field"><label>OBRA</label><div class="value">NR-17 EIA SECAGEM</div></div>
-                            </div>
-                            <div style="margin-top: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                <div class="rdo-field"><label>ENDEREÇO</label><div class="value">Av. Newton Bello - Imperatriz - MA</div></div>
-                                <div class="rdo-field"><label>RESP. TÉCNICO</label><div class="value">J. Emílio M. Gálvez</div></div>
-                            </div>
-                        </div>
-                        <div style="padding: 20px;">
-                            <div class="grid-3" style="margin-bottom: 20px;">
-                                <div class="rdo-field"><label>MANHÃ:</label><div class="value">Nublado 25°C</div></div>
-                                <div class="rdo-field"><label>TARDE:</label><div class="value">Nublado 28°C</div></div>
-                                <div class="rdo-field"><label>NOITE:</label><div class="value">Limpo 22°C</div></div>
-                            </div>
-                            <h3 style="margin: 20px 0 10px; color:#60a5fa;">Mão de Obra</h3>
-                            <div class="grid-3">
-                                <table class="rdo-table"><tr><th colspan="3">MOI</th></tr><tr><th>Função</th><th>Prev</th><th>Real</th></tr><tr><td>Coordenador</td><td>1</td><td>1</td></tr><tr><td>Planejador</td><td>1</td><td>1</td></tr><tr><td>Téc. Segurança</td><td>1</td><td>1</td></tr></table>
-                                <table class="rdo-table"><tr><th colspan="3">MOD</th></tr><tr><th>Função</th><th>Prev</th><th>Real</th></tr><tr><td>Eletricista</td><td>2</td><td>1</td></tr><tr><td>Montador</td><td>2</td><td>1</td></tr><tr><td>Ajudante</td><td>1</td><td>0</td></tr></table>
-                                <table class="rdo-table"><tr><th colspan="3">Equipamentos</th></tr><tr><th>Equipamento</th><th>Prev</th><th>Real</th></tr><tr><td>Container</td><td>4</td><td>4</td></tr><tr><td>Plataforma</td><td>1</td><td>1</td></tr><tr><td>Máq. Solda</td><td>1</td><td>1</td></tr></table>
-                            </div>
-                            <h3 style="margin: 20px 0 10px; color:#60a5fa;">Tarefas Realizadas</h3>
-                            <ol style="margin-left: 20px; color:#e1e9f0;"><li>Liberação das Atividades</li><li>Adequação no comando do painel</li><li>Testes de funcionamento</li></ol>
-                        </div>
-                    </div>
-                    <button class="btn btn-success" style="margin-top: 20px;" onclick="alert('RDO gerado!')"><i class="fas fa-file-pdf"></i> Gerar RDO</button>
-                </div>
-            `;
+        
+        function renderAllDocuments(filterEap = '') {
+            let filtered = filterEap ? documentos.filter(d => d.eap_code === filterEap) : documentos;
+            if (filtered.length === 0) return '<div style="text-align:center;padding:40px">Nenhum documento</div>';
+            return filtered.map(doc => `<div class="document-card"><div class="document-icon"><i class="fas fa-file-pdf"></i></div><div class="document-info"><div class="document-title">${doc.titulo}</div><div class="document-meta"><span><i class="fas fa-diagram-project"></i> ${doc.eap_code || 'N/A'}</span><span><i class="fas fa-calendar"></i> ${new Date(doc.data_upload).toLocaleDateString()}</span></div></div><div class="document-actions"><button class="btn btn-primary btn-sm" onclick="downloadDocument('${doc.arquivo_url}', '${doc.arquivo_nome}')"><i class="fas fa-download"></i></button></div></div>`).join('');
         }
-
-        window.renderHHT = function () {
-            const projeto = window.projetos[0];
-            const dadosHHT = projeto.dadosHHT || {
-                hhtSemanas: Array(17).fill(0),
-                hhtAcumuladoSemanas: Array(17).fill(0),
-                moiSemanas: Array(17).fill(0),
-                modSemanas: Array(17).fill(0),
-                efetivoSemanas: Array(17).fill(0),
-                semanas: ['14/09', '21/09', '28/09', '05/10', '12/10', '19/10', '26/10', '02/11', '09/11', '16/11', '23/11', '30/11', '07/12', '14/12', '21/12', '28/12', '04/01'],
-                hhtSemanaAtual: 0,
-                hhtAcumulado: 0,
-                mediaSemanal: 0,
-                diasSemAcidente: 0,
-                caf: 0,
-                saf: 0,
-                osa: 0,
-                taxaCAF: 0,
-                taxaSAF: 0,
-                taxaTotal: 0,
-                ocorrenciaAmbiental: 0,
-                desvios: 0
-            };
-
-            window.dadosHHTAtual = dadosHHT;
-
-            return `
-                <div class="card">
-                    <div class="card-header">
-                        <h2>HHT e Mão de Obra - Detalhado</h2>
-                        <select class="form-control" style="width: auto;" id="hhtProjetoSelector" onchange="window.mudarProjetoHHT(this.value)">
-                            ${window.projetos.map(p => `<option value="${p.id}" ${p.id === projeto.id ? 'selected' : ''}>${p.nome}</option>`).join('')}
-                        </select>
-                    </div>
-                    
-                    <div class="grid-4" style="margin-bottom: 20px;">
-                        <div class="hht-card" style="text-align: center; background: linear-gradient(135deg, #1e293b, #0f172a);">
-                            <i class="fas fa-clock" style="font-size: 24px; color: #3b82f6; margin-bottom: 10px;"></i>
-                            <div class="hht-value" id="hht-semana-atual">${window.formatarNumeroHHT(dadosHHT.hhtSemanaAtual)}</div>
-                            <div class="hht-label">HHT Semana Atual</div>
-                            <div style="font-size: 11px; color: #64748b;">(x1000)</div>
-                        </div>
-                        <div class="hht-card" style="text-align: center; background: linear-gradient(135deg, #1e293b, #0f172a);">
-                            <i class="fas fa-calendar-alt" style="font-size: 24px; color: #10b981; margin-bottom: 10px;"></i>
-                            <div class="hht-value" id="hht-acumulado">${window.formatarNumeroHHT(dadosHHT.hhtAcumulado)}</div>
-                            <div class="hht-label">HHT Acumulado</div>
-                            <div style="font-size: 11px; color: #64748b;">(x1000)</div>
-                        </div>
-                        <div class="hht-card" style="text-align: center; background: linear-gradient(135deg, #1e293b, #0f172a);">
-                            <i class="fas fa-chart-line" style="font-size: 24px; color: #f59e0b; margin-bottom: 10px;"></i>
-                            <div class="hht-value" id="hht-media-semanal">${window.formatarNumeroHHT(dadosHHT.mediaSemanal)}</div>
-                            <div class="hht-label">Média Semanal</div>
-                            <div style="font-size: 11px; color: #64748b;">(x1000)</div>
-                        </div>
-                        <div class="hht-card" style="text-align: center; background: linear-gradient(135deg, #1e293b, #0f172a); ${dadosHHT.diasSemAcidente > 0 ? 'border-left: 4px solid #10b981;' : ''}">
-                            <i class="fas fa-shield-alt" style="font-size: 24px; color: ${dadosHHT.diasSemAcidente > 0 ? '#10b981' : '#94a3b8'}; margin-bottom: 10px;"></i>
-                            <div class="hht-value" id="dias-sem-acidente">${dadosHHT.diasSemAcidente}</div>
-                            <div class="hht-label">Dias sem Acidente</div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="margin-bottom: 20px;">
-                        <div class="card-header">
-                            <h2><i class="fas fa-chart-line"></i> Evolução HHT Semanal e Acumulado</h2>
-                            <span class="badge">Período: ${dadosHHT.semanas.length} semanas</span>
-                        </div>
-                        <div class="chart-container" style="height: 350px;">
-                            <canvas id="hhtChartPrincipal"></canvas>
-                        </div>
-                        <div class="chart-legend" style="margin-top: 15px;">
-                            <div class="legend-item"><div class="legend-color" style="background: #3b82f6;"></div><span>HHT Semanal</span></div>
-                            <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div><span>HHT Acumulado</span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="card" style="margin-bottom: 20px;">
-                        <div class="card-header">
-                            <h2><i class="fas fa-users"></i> Mão de Obra por Semana</h2>
-                        </div>
-                        <div class="chart-container" style="height: 300px;">
-                            <canvas id="hhtChartMOI"></canvas>
-                        </div>
-                        <div class="chart-legend" style="margin-top: 15px;">
-                            <div class="legend-item"><div class="legend-color" style="background: #3b82f6;"></div><span>MOI</span></div>
-                            <div class="legend-item"><div class="legend-color" style="background: #f59e0b;"></div><span>MOD</span></div>
-                            <div class="legend-item"><div class="legend-color" style="background: #10b981;"></div><span>Efetivo Total</span></div>
-                        </div>
-                    </div>
-                    
-                    <div class="grid-2" style="margin-bottom: 20px;">
-                        <div class="card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-exclamation-triangle"></i> Taxas de Frequência</h2>
-                            </div>
-                            <div class="chart-container" style="height: 250px;">
-                                <canvas id="hhtChartTaxas"></canvas>
-                            </div>
-                            <div style="margin-top: 15px;">
-                                <div class="progress-container">
-                                    <div class="progress-label"><span>Taxa CAF</span><span id="taxa-caf-valor">${dadosHHT.taxaCAF}</span></div>
-                                    <div class="progress-bar"><div class="progress-fill" id="taxa-caf-bar" style="width: ${Math.min(dadosHHT.taxaCAF * 2, 100)}%; background-color: ${dadosHHT.taxaCAF > 0 ? '#e74c3c' : '#27ae60'};"></div></div>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress-label"><span>Taxa SAF</span><span id="taxa-saf-valor">${dadosHHT.taxaSAF}</span></div>
-                                    <div class="progress-bar"><div class="progress-fill" id="taxa-saf-bar" style="width: ${Math.min(dadosHHT.taxaSAF * 2, 100)}%; background-color: ${dadosHHT.taxaSAF > 0 ? '#f39c12' : '#27ae60'};"></div></div>
-                                </div>
-                                <div class="progress-container">
-                                    <div class="progress-label"><span>Taxa Total</span><span id="taxa-total-valor">${dadosHHT.taxaTotal}</span></div>
-                                    <div class="progress-bar"><div class="progress-fill" id="taxa-total-bar" style="width: ${Math.min(dadosHHT.taxaTotal * 2, 100)}%; background-color: ${dadosHHT.taxaTotal > 0 ? '#e74c3c' : '#27ae60'};"></div></div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="card">
-                            <div class="card-header">
-                                <h2><i class="fas fa-shield-virus"></i> Indicadores de Segurança</h2>
-                            </div>
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
-                                <div class="hht-card" style="text-align: center;">
-                                    <i class="fas fa-user-injured" style="color: #ef4444; font-size: 20px; margin-bottom: 5px;"></i>
-                                    <div class="hht-value" style="font-size: 20px;" id="caf-valor">${dadosHHT.caf}</div>
-                                    <div class="hht-label">CAF</div>
-                                </div>
-                                <div class="hht-card" style="text-align: center;">
-                                    <i class="fas fa-band-aid" style="color: #f59e0b; font-size: 20px; margin-bottom: 5px;"></i>
-                                    <div class="hht-value" style="font-size: 20px;" id="saf-valor">${dadosHHT.saf}</div>
-                                    <div class="hht-label">SAF</div>
-                                </div>
-                                <div class="hht-card" style="text-align: center;">
-                                    <i class="fas fa-clinic-medical" style="color: #3b82f6; font-size: 20px; margin-bottom: 5px;"></i>
-                                    <div class="hht-value" style="font-size: 20px;" id="osa-valor">${dadosHHT.osa}</div>
-                                    <div class="hht-label">OSA</div>
-                                </div>
-                                <div class="hht-card" style="text-align: center;">
-                                    <i class="fas fa-leaf" style="color: #10b981; font-size: 20px; margin-bottom: 5px;"></i>
-                                    <div class="hht-value" style="font-size: 20px;" id="ambiental-valor">${dadosHHT.ocorrenciaAmbiental}</div>
-                                    <div class="hht-label">Ocorrências Ambientais</div>
-                                </div>
-                            </div>
-                            <div style="margin-top: 20px;">
-                                <div style="display: flex; justify-content: space-between; padding: 10px; background: #1e293b; border-radius: 8px;">
-                                    <span>Desvios Registrados:</span>
-                                    <span class="badge" id="desvios-valor">${dadosHHT.desvios}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="card">
-                        <div class="card-header">
-                            <h2><i class="fas fa-table"></i> Tabela Detalhada de Indicadores</h2>
-                            <span class="badge">Atualizado via Supabase</span>
-                        </div>
-                        <div style="overflow-x: auto; max-height: 400px;">
-                            <table class="hht-table" style="min-width: 1200px;">
-                                <thead>
-                                    <tr>
-                                        <th>Indicador</th>
-                                        <th>Semana<br>Atual</th>
-                                        <th>Acum.</th>
-                                        ${dadosHHT.semanas.map((semana, idx) => `<th>S.${idx + 1}<br>${semana}</th>`).join('')}
-                                    </tr>
-                                </thead>
-                                <tbody id="hht-tabela-corpo">
-                                    ${window.renderizarLinhasTabelaHHT(dadosHHT)}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-            `;
+        
+        function filterDocuments() { const filter = document.getElementById('filterEap')?.value || ''; const container = document.getElementById('all-documents-list'); if (container) container.innerHTML = renderAllDocuments(filter); }
+        
+        function renderUploadPage() {
+            return `<div class="card"><div class="card-header"><h2><i class="fas fa-upload"></i> Upload de Documentos</h2></div><div class="upload-area" onclick="document.getElementById('fileUpload').click()"><i class="fas fa-cloud-upload-alt"></i><p>Clique para selecionar um arquivo</p><small>PDF, DOC, XLSX, JPG, PNG - até 50MB</small><input type="file" id="fileUpload" style="display:none" accept=".pdf,.doc,.docx,.xlsx,.xls,.jpg,.jpeg,.png" onchange="prepareUpload(this)"></div><div id="uploadForm" style="display:none"><div class="form-group"><label>Título</label><input type="text" class="form-control" id="docTitulo"></div><div class="form-group"><label>Descrição</label><textarea class="form-control" id="docDescricao" rows="2"></textarea></div><div class="grid-2"><div class="form-group"><label>EAP</label><select class="form-control" id="docEap"><option value="">Selecione</option>${eapStructure.map(node => `<option value="${node.code}">${node.code} - ${node.name}</option>`).join('')}</select></div><div class="form-group"><label>Tipo</label><select class="form-control" id="docTipo"><option>RELATORIO</option><option>CONTRATO</option><option>NOTA_FISCAL</option></select></div></div><div style="display:flex; gap:10px; justify-content:flex-end; margin-top:20px"><button class="btn btn-secondary" onclick="cancelUpload()">Cancelar</button><button class="btn btn-success" onclick="uploadDocument()"><i class="fas fa-upload"></i> Enviar</button></div></div><div id="selectedFileInfo" style="margin-top:15px; padding:10px; background:#1e293b; border-radius:8px; display:none"><i class="fas fa-file"></i> Arquivo: <strong id="selectedFileName"></strong></div></div>`;
         }
-
-        window.formatarNumeroHHT = function (valor) {
-            if (!valor && valor !== 0) return '0';
-            if (typeof valor === 'string') valor = parseFloat(valor);
-            if (valor >= 1000) {
-                return (valor / 1000).toFixed(1) + 'k';
-            }
-            return valor.toString();
+        
+        let selectedFile = null;
+        function prepareUpload(input) { selectedFile = input.files[0]; if (selectedFile) { document.getElementById('selectedFileName').textContent = selectedFile.name; document.getElementById('selectedFileInfo').style.display = 'block'; document.getElementById('uploadForm').style.display = 'block'; } }
+        function cancelUpload() { selectedFile = null; document.getElementById('fileUpload').value = ''; document.getElementById('selectedFileInfo').style.display = 'none'; document.getElementById('uploadForm').style.display = 'none'; }
+        
+        async function uploadDocument() {
+            if (!selectedFile) { showInfo('Selecione um arquivo!', 'error'); return; }
+            const titulo = document.getElementById('docTitulo').value;
+            if (!titulo) { showInfo('Informe o título!', 'error'); return; }
+            const eapCode = document.getElementById('docEap').value;
+            if (!eapCode) { showInfo('Selecione a EAP!', 'error'); return; }
+            if (!supabaseClient) supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            showLoading('Enviando...');
+            try {
+                const fileName = `${Date.now()}_${selectedFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+                const { error: uploadError } = await supabaseClient.storage.from('documentos').upload(`documentos/${fileName}`, selectedFile);
+                if (uploadError) throw uploadError;
+                const { data: urlData } = supabaseClient.storage.from('documentos').getPublicUrl(`documentos/${fileName}`);
+                const { error: insertError } = await supabaseClient.from('documentos').insert({ titulo: titulo, descricao: document.getElementById('docDescricao').value || '', tipo_documento: document.getElementById('docTipo').value, eap_code: eapCode, arquivo_url: urlData.publicUrl, arquivo_nome: selectedFile.name, tamanho_bytes: selectedFile.size, usuario_upload: 'usuario@fw.com.br', ativo: true });
+                if (insertError) throw insertError;
+                showInfo('Documento enviado!', 'success');
+                cancelUpload();
+                await loadDocumentosFromSupabase();
+                await loadContent('dashboard');
+            } catch (error) { hideLoading(); showInfo('Erro: ' + error.message, 'error'); }
         }
-
-        window.renderizarLinhasTabelaHHT = function (dados) {
-            const linhas = [
-                { nome: 'HHT (x1000)', dados: dados.hhtSemanas, semanaAtual: dados.hhtSemanaAtual, acumulado: dados.hhtAcumulado },
-                { nome: 'HHT Acumulado', dados: dados.hhtAcumuladoSemanas, semanaAtual: '-', acumulado: '-' },
-                { nome: 'MOI Total', dados: dados.moiSemanas, semanaAtual: dados.moiSemanas[dados.moiSemanas.length - 1] || 0, acumulado: dados.moiSemanas.reduce((a, b) => a + (parseFloat(b) || 0), 0) },
-                { nome: 'MOD Total', dados: dados.modSemanas, semanaAtual: dados.modSemanas[dados.modSemanas.length - 1] || 0, acumulado: dados.modSemanas.reduce((a, b) => a + (parseFloat(b) || 0), 0) },
-                { nome: 'Efetivo Total', dados: dados.efetivoSemanas, semanaAtual: dados.efetivoSemanas[dados.efetivoSemanas.length - 1] || 0, acumulado: dados.efetivoSemanas.reduce((a, b) => a + (parseFloat(b) || 0), 0) },
-                { nome: 'CAF', dados: Array(17).fill(0), semanaAtual: dados.caf, acumulado: dados.caf },
-                { nome: 'SAF', dados: Array(17).fill(0), semanaAtual: dados.saf, acumulado: dados.saf },
-                { nome: 'OSA', dados: Array(17).fill(0), semanaAtual: dados.osa, acumulado: dados.osa },
-                { nome: 'Taxa CAF', dados: Array(17).fill(dados.taxaCAF), semanaAtual: dados.taxaCAF, acumulado: '-' },
-                { nome: 'Taxa SAF', dados: Array(17).fill(dados.taxaSAF), semanaAtual: dados.taxaSAF, acumulado: '-' },
-                { nome: 'Taxa Total', dados: Array(17).fill(dados.taxaTotal), semanaAtual: dados.taxaTotal, acumulado: '-' },
-                { nome: 'Desvios', dados: Array(17).fill(0), semanaAtual: dados.desvios, acumulado: dados.desvios }
-            ];
-
-            return linhas.map(linha => {
-                return `
-                    <tr>
-                        <td style="font-weight: 600;">${linha.nome}</td>
-                        <td class="hht-value-cell">${linha.semanaAtual}</td>
-                        <td class="hht-value-cell">${linha.acumulado}</td>
-                        ${linha.dados.slice(0, 17).map((valor, idx) => {
-                    const valorNum = parseFloat(valor) || 0;
-                    const classe = valorNum > 0 ? 'positive-value' : 'zero-value';
-                    return `<td class="${classe}">${valorNum}</td>`;
-                }).join('')}
-                    </tr>
-                `;
-            }).join('');
+        
+        // ==================== PEDIDO DE COMPRA ====================
+        function renderPedidoCompra() {
+            return `<div class="card"><div class="card-header"><h2><i class="fas fa-shopping-cart"></i> Pedidos de Compra</h2><button class="btn btn-primary" onclick="showNewPoForm()"><i class="fas fa-plus"></i> Novo Pedido</button></div><div class="tabs"><div class="tab active" onclick="switchPoTab('lista', event)">Lista de Pedidos</div><div class="tab" onclick="switchPoTab('novo', event)">Novo Pedido</div></div><div id="po-lista" class="tab-content active">${renderPoList()}</div><div id="po-novo" class="tab-content">${renderPoForm()}</div></div>`;
         }
-
-        window.inicializarGraficosHHT = function (dados) {
-            console.log('Inicializando gráficos com dados:', dados);
-
-            if (!dados) {
-                console.error('Dados HHT não encontrados!');
-                return;
-            }
-
-            console.log('Semanas:', dados.semanas);
-            console.log('HHT Semanas (valores):', dados.hhtSemanas);
-            console.log('HHT Acumulado (valores):', dados.hhtAcumuladoSemanas);
-
-            const temDadosHHT = dados.hhtSemanas.some(v => v > 0);
-            const temDadosAcumulado = dados.hhtAcumuladoSemanas.some(v => v > 0);
-
-            console.log('Tem dados HHT:', temDadosHHT);
-            console.log('Tem dados Acumulado:', temDadosAcumulado);
-
-            // Aguardar um pouco para os elementos canvas serem criados
-            setTimeout(() => {
-                // Gráfico 1: HHT Semanal e Acumulado
-                const canvas1 = document.getElementById('hhtChartPrincipal');
-                if (!canvas1) {
-                    console.error('Canvas hhtChartPrincipal não encontrado!');
-                    return;
-                }
-
-                const ctx1 = canvas1.getContext('2d');
-                if (ctx1) {
-                    const existingChart = Chart.getChart(ctx1);
-                    if (existingChart) {
-                        existingChart.destroy();
-                    }
-
-                    new Chart(ctx1, {
-                        type: 'bar',
-                        data: {
-                            labels: dados.semanas,
-                            datasets: [
-                                {
-                                    label: 'HHT Semanal (x1000)',
-                                    data: dados.hhtSemanas.slice(0, 17),
-                                    backgroundColor: '#3b82f6',
-                                    borderRadius: 6,
-                                    barPercentage: 0.7,
-                                    categoryPercentage: 0.8,
-                                    yAxisID: 'y',
-                                },
-                                {
-                                    label: 'HHT Acumulado (x1000)',
-                                    data: dados.hhtAcumuladoSemanas.slice(0, 17),
-                                    type: 'line',
-                                    borderColor: '#10b981',
-                                    backgroundColor: 'transparent',
-                                    borderWidth: 3,
-                                    tension: 0.1,
-                                    pointBackgroundColor: '#10b981',
-                                    pointBorderColor: '#fff',
-                                    pointBorderWidth: 2,
-                                    pointRadius: 4,
-                                    yAxisID: 'y1',
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: '#1e293b',
-                                    titleColor: '#60a5fa',
-                                    bodyColor: '#e1e9f0',
-                                    borderColor: '#3b82f6',
-                                    borderWidth: 1,
-                                    callbacks: {
-                                        label: function (context) {
-                                            let label = context.dataset.label || '';
-                                            if (label) {
-                                                label += ': ';
-                                            }
-                                            if (context.parsed.y !== undefined) {
-                                                label += context.parsed.y.toFixed(1) + 'k';
-                                            }
-                                            return label;
-                                        }
-                                    }
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    position: 'left',
-                                    grid: {
-                                        color: '#334155'
-                                    },
-                                    ticks: {
-                                        color: '#94a3b8',
-                                        callback: function (value) {
-                                            return value + 'k';
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'HHT Semanal (x1000)',
-                                        color: '#3b82f6'
-                                    }
-                                },
-                                y1: {
-                                    beginAtZero: true,
-                                    position: 'right',
-                                    grid: {
-                                        drawOnChartArea: false,
-                                    },
-                                    ticks: {
-                                        color: '#10b981',
-                                        callback: function (value) {
-                                            return value + 'k';
-                                        }
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'HHT Acumulado (x1000)',
-                                        color: '#10b981'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        color: '#334155'
-                                    },
-                                    ticks: {
-                                        color: '#94a3b8',
-                                        maxRotation: 45,
-                                        minRotation: 45
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    console.log('Gráfico HHT Principal criado');
-                }
-
-                // Gráfico 2: MOI vs MOD vs Efetivo
-                const canvas2 = document.getElementById('hhtChartMOI');
-                if (!canvas2) {
-                    console.error('Canvas hhtChartMOI não encontrado!');
-                    return;
-                }
-
-                const ctx2 = canvas2.getContext('2d');
-                if (ctx2) {
-                    const existingChart = Chart.getChart(ctx2);
-                    if (existingChart) {
-                        existingChart.destroy();
-                    }
-
-                    new Chart(ctx2, {
-                        type: 'bar',
-                        data: {
-                            labels: dados.semanas,
-                            datasets: [
-                                {
-                                    label: 'MOI',
-                                    data: dados.moiSemanas.slice(0, 17),
-                                    backgroundColor: '#3b82f6',
-                                    borderRadius: 4,
-                                    barPercentage: 0.8,
-                                    categoryPercentage: 0.9
-                                },
-                                {
-                                    label: 'MOD',
-                                    data: dados.modSemanas.slice(0, 17),
-                                    backgroundColor: '#f59e0b',
-                                    borderRadius: 4,
-                                    barPercentage: 0.8,
-                                    categoryPercentage: 0.9
-                                },
-                                {
-                                    label: 'Efetivo Total',
-                                    data: dados.efetivoSemanas.slice(0, 17),
-                                    backgroundColor: '#10b981',
-                                    borderRadius: 4,
-                                    barPercentage: 0.8,
-                                    categoryPercentage: 0.9
-                                }
-                            ]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    display: false
-                                },
-                                tooltip: {
-                                    backgroundColor: '#1e293b',
-                                    titleColor: '#60a5fa',
-                                    bodyColor: '#e1e9f0',
-                                    borderColor: '#3b82f6',
-                                    borderWidth: 1
-                                }
-                            },
-                            scales: {
-                                y: {
-                                    beginAtZero: true,
-                                    grid: {
-                                        color: '#334155'
-                                    },
-                                    ticks: {
-                                        color: '#94a3b8'
-                                    },
-                                    title: {
-                                        display: true,
-                                        text: 'Quantidade',
-                                        color: '#94a3b8'
-                                    }
-                                },
-                                x: {
-                                    grid: {
-                                        color: '#334155'
-                                    },
-                                    ticks: {
-                                        color: '#94a3b8',
-                                        maxRotation: 45,
-                                        minRotation: 45
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    console.log('Gráfico HHT MOI criado');
-                }
-
-                // Gráfico 3: Taxas de Frequência
-                const canvas3 = document.getElementById('hhtChartTaxas');
-                if (!canvas3) {
-                    console.error('Canvas hhtChartTaxas não encontrado!');
-                    return;
-                }
-
-                const ctx3 = canvas3.getContext('2d');
-                if (ctx3) {
-                    const existingChart = Chart.getChart(ctx3);
-                    if (existingChart) {
-                        existingChart.destroy();
-                    }
-
-                    const totalTaxas = (parseFloat(dados.taxaCAF) || 0) + (parseFloat(dados.taxaSAF) || 0);
-                    new Chart(ctx3, {
-                        type: 'doughnut',
-                        data: {
-                            labels: ['CAF', 'SAF', 'Sem Registros'],
-                            datasets: [{
-                                data: [
-                                    dados.taxaCAF || 0,
-                                    dados.taxaSAF || 0,
-                                    Math.max(0, 100 - totalTaxas)
-                                ],
-                                backgroundColor: ['#ef4444', '#f59e0b', '#10b981'],
-                                borderWidth: 0,
-                                hoverOffset: 4
-                            }]
-                        },
-                        options: {
-                            responsive: true,
-                            maintainAspectRatio: false,
-                            plugins: {
-                                legend: {
-                                    position: 'bottom',
-                                    labels: {
-                                        color: '#94a3b8',
-                                        font: {
-                                            size: 12
-                                        }
-                                    }
-                                },
-                                tooltip: {
-                                    backgroundColor: '#1e293b',
-                                    titleColor: '#60a5fa',
-                                    bodyColor: '#e1e9f0',
-                                    borderColor: '#3b82f6',
-                                    borderWidth: 1,
-                                    callbacks: {
-                                        label: function (context) {
-                                            return context.label + ': ' + context.raw.toFixed(1) + '%';
-                                        }
-                                    }
-                                }
-                            },
-                            cutout: '60%'
-                        }
-                    });
-                    console.log('Gráfico HHT Taxas criado');
-                }
-            }, 500); // Aguardar 500ms para os elementos canvas serem criados
+        
+        function renderPoList() {
+            if (purchaseOrders.length === 0) return '<div style="text-align:center;padding:40px">Nenhum pedido</div>';
+            return `<div class="table-responsive"><table style="width:100%"><thead><tr><th>Nº</th><th>Data</th><th>Fornecedor</th><th>Centro Custo</th><th>Total</th><th>Status</th><th>Ações</th> </thead><tbody>${purchaseOrders.map(po => {
+                let total = po.items.reduce((s,i)=>s+i.total,0) - po.desconto + po.frete;
+                let statusClass = po.status === 'Aprovado' ? 'badge-success' : (po.status === 'Cancelado' ? 'badge-danger' : 'badge-warning');
+                return `<tr><td><strong>${po.numero}</strong><td>${new Date(po.data).toLocaleDateString()}<td>${po.fornecedor.substring(0,30)}<td>${po.centroCusto.substring(0,25)}<td><strong>R$ ${total.toFixed(2)}</strong><td><span class="badge ${statusClass}">${po.status}</span><td class="action-buttons"><button class="btn btn-secondary btn-sm" onclick="viewPo(${po.id})"><i class="fas fa-eye"></i></button><button class="btn btn-success btn-sm" onclick="exportPoToExcel(${po.id})"><i class="fas fa-file-excel"></i></button><button class="btn btn-danger btn-sm" onclick="deletePo(${po.id})"><i class="fas fa-trash"></i></button>`;
+            }).join('')}</tbody></table></div>`;
         }
-
-        window.mudarProjetoHHT = function (projetoId) {
-            const projeto = window.projetos.find(p => p.id === parseInt(projetoId));
-            if (!projeto) return;
-
-            const dados = projeto.dadosHHT || {
-                hhtSemanas: Array(17).fill(0),
-                hhtAcumuladoSemanas: Array(17).fill(0),
-                moiSemanas: Array(17).fill(0),
-                modSemanas: Array(17).fill(0),
-                efetivoSemanas: Array(17).fill(0),
-                semanas: ['14/09', '21/09', '28/09', '05/10', '12/10', '19/10', '26/10', '02/11', '09/11', '16/11', '23/11', '30/11', '07/12', '14/12', '21/12', '28/12', '04/01'],
-                hhtSemanaAtual: 0,
-                hhtAcumulado: 0,
-                mediaSemanal: 0,
-                diasSemAcidente: 0,
-                caf: 0,
-                saf: 0,
-                osa: 0,
-                taxaCAF: 0,
-                taxaSAF: 0,
-                taxaTotal: 0,
-                ocorrenciaAmbiental: 0,
-                desvios: 0
-            };
-
-            document.getElementById('hht-semana-atual').textContent = window.formatarNumeroHHT(dados.hhtSemanaAtual);
-            document.getElementById('hht-acumulado').textContent = window.formatarNumeroHHT(dados.hhtAcumulado);
-            document.getElementById('hht-media-semanal').textContent = window.formatarNumeroHHT(dados.mediaSemanal);
-            document.getElementById('dias-sem-acidente').textContent = dados.diasSemAcidente;
-
-            document.getElementById('taxa-caf-valor').textContent = dados.taxaCAF;
-            document.getElementById('taxa-saf-valor').textContent = dados.taxaSAF;
-            document.getElementById('taxa-total-valor').textContent = dados.taxaTotal;
-
-            document.getElementById('caf-valor').textContent = dados.caf;
-            document.getElementById('saf-valor').textContent = dados.saf;
-            document.getElementById('osa-valor').textContent = dados.osa;
-            document.getElementById('ambiental-valor').textContent = dados.ocorrenciaAmbiental;
-            document.getElementById('desvios-valor').textContent = dados.desvios;
-
-            window.inicializarGraficosHHT(dados);
-
-            const tabelaCorpo = document.getElementById('hht-tabela-corpo');
-            if (tabelaCorpo) {
-                tabelaCorpo.innerHTML = window.renderizarLinhasTabelaHHT(dados);
-            }
+        
+        function renderPoForm() {
+            return `<form onsubmit="savePurchaseOrder(event)"><div class="grid-2"><div><div class="form-group"><label>Nº Pedido</label><input type="text" class="form-control" id="poNumero" value="${nextPoId}" readonly></div><div class="form-group"><label>Data</label><input type="date" class="form-control" id="poData" value="${new Date().toISOString().split('T')[0]}" required></div><div class="form-group"><label>Fornecedor</label><input type="text" class="form-control" id="poFornecedor" required></div><div class="form-group"><label>CNPJ</label><input type="text" class="form-control" id="poCnpj"></div><div class="form-group"><label>Vendedor</label><input type="text" class="form-control" id="poVendedor"></div></div><div><div class="form-group"><label>Centro de Custo</label><select class="form-control" id="poCentroCusto"><option value="">Selecione</option><option>PC 4501089929 - ANDRITZ - Bracell Lençóis Paulista - Montagem Tissue</option></select></div><div class="form-group"><label>Requisitante</label><input type="text" class="form-control" id="poRequisitante"></div><div class="form-group"><label>Condição Pagamento</label><select class="form-control" id="poCondicaoPagamento"><option>Boleto</option><option>Transferência</option><option>Pix</option></select></div><div class="form-group"><label>Status</label><select class="form-control" id="poStatus"><option>Em Andamento</option><option>Aprovado</option><option>Cancelado</option></select></div></div></div><div class="card-header"><h2>Itens</h2><button type="button" class="btn btn-primary btn-sm" onclick="addPoItem()"><i class="fas fa-plus"></i> Adicionar</button></div><div id="poItemsContainer"><div class="po-item-row"><div class="grid-4"><input type="text" class="form-control" placeholder="Descrição"><input type="text" class="form-control" placeholder="Unid" style="width:80px"><input type="number" class="form-control" placeholder="Qtd" value="1" style="width:100px"><input type="number" class="form-control" placeholder="Preço Unit." step="0.01" value="0" style="width:120px"></div></div></div><div class="grid-2"><div><div class="form-group"><label>Desconto (R$)</label><input type="number" class="form-control" id="poDesconto" value="0" onchange="updatePoTotal()"></div><div class="form-group"><label>Frete (R$)</label><input type="number" class="form-control" id="poFrete" value="0" onchange="updatePoTotal()"></div></div><div style="text-align:right"><h3>Total: <span id="poTotalPreview" class="total-value">R$ 0.00</span></h3></div></div><div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px"><button type="button" class="btn btn-secondary" onclick="clearPoForm()">Limpar</button><button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Salvar</button></div></form>`;
         }
-
-        window.renderCronogramaGeral = function () {
-            return window.projetos.map(projeto => `
-                <div class="card">
-                    <div class="card-header">
-                        <h2>${projeto.nome}</h2>
-                        <img src="${projeto.logo}" class="${projeto.logo === 'Suzano LOGO 2.png' ? 'logo-suzano2' : 'logo-img'}" alt="logo" onerror="this.src='fw_mini.ico'">
-                    </div>
-                    <table>
-                        <tr><th>Atividade</th><th>Início</th><th>Fim</th><th>Progresso</th></tr>
-                        ${projeto.cronograma.map(item => `
-                            <tr>
-                                <td>${item.atividade}</td>
-                                <td>${new Date(item.inicio).toLocaleDateString()}</td>
-                                <td>${new Date(item.fim).toLocaleDateString()}</td>
-                                <td>
-                                    <div style="display: flex; align-items: center; gap: 10px;">
-                                        <div class="progress" style="width: 100px;"><div class="progress-bar" style="width: ${item.progresso}%;"></div></div>
-                                        ${item.progresso}%
-                                    </div>
-                                </td>
-                            </tr>
-                        `).join('')}
-                    </table>
-                </div>
-            `).join('');
+        
+        function addPoItem() {
+            let container = document.getElementById('poItemsContainer');
+            if (!container) return;
+            let div = document.createElement('div');
+            div.className = 'po-item-row';
+            div.innerHTML = `<div class="grid-4"><input type="text" class="form-control" placeholder="Descrição"><input type="text" class="form-control" placeholder="Unid" style="width:80px"><input type="number" class="form-control" placeholder="Qtd" value="1" style="width:100px"><input type="number" class="form-control" placeholder="Preço Unit." step="0.01" value="0" style="width:120px"></div><div style="text-align:right"><span class="item-remove" onclick="this.parentElement.parentElement.remove(); updatePoTotal()"><i class="fas fa-trash"></i> Remover</span></div>`;
+            container.appendChild(div);
         }
-
-        window.renderIndicadores = function () {
-            return `
-                <div class="card">
-                    <div class="card-header">
-                        <h2>Indicadores e Controles</h2>
-                    </div>
-                    <table>
-                        <tr><th>Projeto</th><th>Progresso</th><th>HH Realizadas</th><th>Dias s/ Acidente</th><th>Status</th></tr>
-                        ${window.projetos.map(projeto => `
-                            <tr>
-                                <td>${projeto.nome}</td>
-                                <td>${projeto.progresso}%</td>
-                                <td>${projeto.hht.realizadas}h</td>
-                                <td>${projeto.hht.diasSemAcidente}</td>
-                                <td><span class="badge" style="${projeto.progresso < 30 ? 'background: #92400e; color: #fbbf24;' : ''}">${projeto.progresso > 70 ? 'Avançado' : projeto.progresso > 30 ? 'Em Andamento' : 'Inicial'}</span></td>
-                            </tr>
-                        `).join('')}
-                    </table>
-                </div>
-            `;
-        }
-
-        window.showProjectTab = function (element, tabId) {
-            const tabs = element.parentElement.querySelectorAll('.tab');
-            tabs.forEach(t => t.classList.remove('active'));
-            element.classList.add('active');
-
-            const card = element.closest('.card');
-            const allContents = card.querySelectorAll('.tab-content');
-
-            allContents.forEach(content => {
-                content.style.opacity = '0';
-                setTimeout(() => {
-                    if (content.style.opacity === '0') {
-                        content.style.display = 'none';
-                    }
-                }, 400);
+        
+        function updatePoTotal() {
+            let total = 0;
+            document.querySelectorAll('#poItemsContainer .po-item-row').forEach(row => {
+                let qtd = parseFloat(row.querySelector('input[placeholder*="Qtd"]')?.value) || 0;
+                let preco = parseFloat(row.querySelector('input[placeholder*="Preço Unit"]')?.value) || 0;
+                total += qtd * preco;
             });
-
-            const selectedContent = document.getElementById(tabId);
-            setTimeout(() => {
-                selectedContent.style.display = 'block';
-                setTimeout(() => {
-                    selectedContent.style.opacity = '1';
-                    if (tabId.startsWith('curva-')) {
-                        setTimeout(() => {
-                            window.initializeCharts();
-                        }, 100);
-                    }
-                }, 50);
-            }, 400);
+            let desconto = parseFloat(document.getElementById('poDesconto')?.value) || 0;
+            let totalSpan = document.getElementById('poTotalPreview');
+            if (totalSpan) totalSpan.textContent = `R$ ${(total - desconto).toFixed(2)}`;
         }
-
-        window.initializeCharts = function () {
-            window.projetos.forEach((projeto, index) => {
-                if (document.getElementById(`curvaSChart-${projeto.id}`)) {
-                    window.renderCurvaSChart(projeto.curvaS, `curvaSChart-${projeto.id}`);
-                }
+        
+        function savePurchaseOrder(e) {
+            e.preventDefault();
+            let items = [];
+            document.querySelectorAll('#poItemsContainer .po-item-row').forEach(row => {
+                let desc = row.querySelector('input[placeholder*="Descrição"]')?.value;
+                let unid = row.querySelector('input[placeholder*="Unid"]')?.value || 'und';
+                let qtd = parseFloat(row.querySelector('input[placeholder*="Qtd"]')?.value) || 0;
+                let preco = parseFloat(row.querySelector('input[placeholder*="Preço Unit"]')?.value) || 0;
+                if (desc && qtd > 0 && preco > 0) items.push({ descricao: desc, unidade: unid, quantidade: qtd, precoUnitario: preco, total: qtd * preco });
             });
+            if (items.length === 0) { showInfo('Adicione pelo menos um item!', 'error'); return; }
+            purchaseOrders.push({ id: nextPoId, numero: nextPoId.toString(), data: document.getElementById('poData').value, fornecedor: document.getElementById('poFornecedor').value, cnpj: document.getElementById('poCnpj').value, vendedor: document.getElementById('poVendedor').value, centroCusto: document.getElementById('poCentroCusto').value, requisitante: document.getElementById('poRequisitante').value, condicaoPagamento: document.getElementById('poCondicaoPagamento').value, status: document.getElementById('poStatus').value, items, desconto: parseFloat(document.getElementById('poDesconto').value) || 0, frete: parseFloat(document.getElementById('poFrete').value) || 0 });
+            nextPoId++;
+            showInfo(`Pedido ${nextPoId-1} criado!`, 'success');
+            clearPoForm();
+            switchPoTab('lista');
+            document.getElementById('po-lista').innerHTML = renderPoList();
         }
-
-        window.renderCurvaSChart = function (curvaSData, containerId) {
-            if (!curvaSData || curvaSData.length === 0) return;
-
-            let lastRealAcum = 0;
-            const processedData = curvaSData.map(item => {
-                if (item.realAcum > 0) {
-                    lastRealAcum = item.realAcum;
+        
+        function clearPoForm() {
+            ['poFornecedor', 'poCnpj', 'poVendedor', 'poCentroCusto', 'poRequisitante'].forEach(f => { const el = document.getElementById(f); if (el) el.value = ''; });
+            const desconto = document.getElementById('poDesconto'); if (desconto) desconto.value = '0';
+            const frete = document.getElementById('poFrete'); if (frete) frete.value = '0';
+            const container = document.getElementById('poItemsContainer');
+            if (container) container.innerHTML = `<div class="po-item-row"><div class="grid-4"><input type="text" class="form-control" placeholder="Descrição"><input type="text" class="form-control" placeholder="Unid" style="width:80px"><input type="number" class="form-control" placeholder="Qtd" value="1" style="width:100px"><input type="number" class="form-control" placeholder="Preço Unit." step="0.01" value="0" style="width:120px"></div></div>`;
+            updatePoTotal();
+        }
+        
+        function viewPo(id) { let po = purchaseOrders.find(p => p.id === id); if (po) alert(`Pedido ${po.numero}\nFornecedor: ${po.fornecedor}\nTotal: R$ ${(po.items.reduce((s,i)=>s+i.total,0)-po.desconto).toFixed(2)}`); }
+        
+        async function exportPoToExcel(id) {
+            let po = purchaseOrders.find(p => p.id === id);
+            if (!po) { showInfo('Pedido não encontrado!', 'error'); return; }
+            showLoading('Gerando Excel...');
+            try {
+                let response = await fetch('PC BASE.xlsx');
+                let workbook = new ExcelJS.Workbook();
+                if (response.ok) {
+                    let arrayBuffer = await response.arrayBuffer();
+                    await workbook.xlsx.load(arrayBuffer);
+                } else {
+                    workbook = new ExcelJS.Workbook();
+                    workbook.addWorksheet('Pedido de Compra');
                 }
-                return {
-                    ...item,
-                    realAcum: item.realAcum > 0 ? item.realAcum : lastRealAcum
-                };
-            });
-
-            const labels = processedData.map(item => `${item.mes}/${item.dia}`);
-            const realAcum = processedData.map(item => item.realAcum);
-            const lbAcum = processedData.map(item => item.lbAcum);
-            const forecast = processedData.map(item => item.forecast2);
-
-            setTimeout(() => {
-                const ctx = document.getElementById(containerId)?.getContext('2d');
-                if (!ctx) return;
-
-                let existingChart = Chart.getChart(ctx);
-                if (existingChart) existingChart.destroy();
-
-                new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: labels,
-                        datasets: [
-                            {
-                                label: 'Real Acumulado',
-                                data: realAcum,
-                                borderColor: '#3b82f6',
-                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                                borderWidth: 3,
-                                tension: 0.1,
-                                fill: false,
-                                pointBackgroundColor: '#3b82f6',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                            },
-                            {
-                                label: 'Line Base Acumulado',
-                                data: lbAcum,
-                                borderColor: '#f59e0b',
-                                backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                                borderWidth: 3,
-                                tension: 0.1,
-                                fill: false,
-                                pointBackgroundColor: '#f59e0b',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                            },
-                            {
-                                label: 'Forecast',
-                                data: forecast,
-                                borderColor: '#10b981',
-                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                                borderWidth: 3,
-                                borderDash: [5, 5],
-                                tension: 0.1,
-                                fill: false,
-                                pointBackgroundColor: '#10b981',
-                                pointBorderColor: '#fff',
-                                pointBorderWidth: 2,
-                                pointRadius: 4,
-                                pointHoverRadius: 6
-                            }
-                        ]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#1e293b',
-                                titleColor: '#60a5fa',
-                                bodyColor: '#e1e9f0',
-                                borderColor: '#3b82f6',
-                                borderWidth: 1
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                grid: { color: '#334155' },
-                                ticks: { color: '#94a3b8', callback: value => value + '%' },
-                                title: { display: true, text: 'Progresso (%)', color: '#94a3b8' }
-                            },
-                            x: {
-                                grid: { color: '#334155' },
-                                ticks: { color: '#94a3b8', maxRotation: 45, minRotation: 45 },
-                                title: { display: true, text: 'Data (Mês/Dia)', color: '#94a3b8' }
-                            }
-                        }
-                    }
+                let worksheet = workbook.getWorksheet(1) || workbook.addWorksheet('Pedido de Compra');
+                worksheet.getCell('C3').value = `PEDIDO DE COMPRA Nº ${po.numero}`;
+                worksheet.getCell('B8').value = po.fornecedor;
+                worksheet.getCell('B9').value = `CNPJ: ${po.cnpj || ''}`;
+                worksheet.getCell('D12').value = po.centroCusto;
+                worksheet.getCell('H12').value = po.requisitante;
+                worksheet.getCell('H13').value = new Date(po.data).toLocaleDateString();
+                worksheet.getCell('B17').value = po.fornecedor;
+                worksheet.getCell('H20').value = po.condicaoPagamento;
+                let startRow = 24;
+                po.items.forEach((item, idx) => {
+                    worksheet.getCell(`A${startRow + idx}`).value = item.descricao;
+                    worksheet.getCell(`B${startRow + idx}`).value = item.unidade;
+                    worksheet.getCell(`C${startRow + idx}`).value = item.quantidade;
+                    worksheet.getCell(`D${startRow + idx}`).value = item.precoUnitario;
+                    worksheet.getCell(`E${startRow + idx}`).value = item.total;
                 });
-            }, 100);
+                let subtotal = po.items.reduce((s,i)=>s+i.total,0);
+                let totalRow = startRow + po.items.length;
+                worksheet.getCell(`D${totalRow}`).value = 'SUBTOTAL';
+                worksheet.getCell(`E${totalRow}`).value = subtotal;
+                worksheet.getCell(`D${totalRow+1}`).value = 'DESCONTO';
+                worksheet.getCell(`E${totalRow+1}`).value = po.desconto;
+                worksheet.getCell(`D${totalRow+2}`).value = 'FRETE';
+                worksheet.getCell(`E${totalRow+2}`).value = po.frete;
+                worksheet.getCell(`D${totalRow+3}`).value = 'TOTAL';
+                worksheet.getCell(`E${totalRow+3}`).value = subtotal - po.desconto + po.frete;
+                let buffer = await workbook.xlsx.writeBuffer();
+                saveAs(new Blob([buffer]), `Pedido_Compra_${po.numero}.xlsx`);
+                showInfo('Excel gerado com sucesso!', 'success');
+            } catch (error) { hideLoading(); showInfo('Erro: ' + error.message, 'error'); }
+            hideLoading();
         }
-
-        // Inicialização
-        window.onload = async function () {
-            window.showLoading('Carregando sistema...');
-
-            // Carregar dados do Supabase
-            await window.carregarDadosSupabase();
-
-            setTimeout(() => {
-                window.loadContent('dashboard');
-                window.hideLoading();
-            }, 500);
+        
+        function deletePo(id) { if (confirm('Excluir este pedido?')) { purchaseOrders = purchaseOrders.filter(p => p.id !== id); document.getElementById('po-lista').innerHTML = renderPoList(); showInfo('Pedido excluído!', 'success'); } }
+        function showNewPoForm() { switchPoTab('novo'); clearPoForm(); }
+        function switchPoTab(tab, event) {
+            if (event && event.currentTarget) { document.querySelectorAll('#pedido_compra .tabs .tab, .card .tabs .tab').forEach(t => t.classList.remove('active')); event.currentTarget.classList.add('active'); }
+            const listaDiv = document.getElementById('po-lista'), novoDiv = document.getElementById('po-novo');
+            if (listaDiv && novoDiv) { if (tab === 'lista') { listaDiv.classList.add('active'); novoDiv.classList.remove('active'); } else { novoDiv.classList.add('active'); listaDiv.classList.remove('active'); } }
+        }
+        
+        function downloadDocument(url, nome) { window.open(url, '_blank'); showInfo(`Abrindo ${nome}`, 'success'); }
+        
+        async function changePage(page, event) {
+            if (event && event.currentTarget) {
+                document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+                event.currentTarget.classList.add('active');
+            }
+            const titles = { dashboard: 'Dashboard EAP', eap: 'EAP - Estrutura Analítica', documentos: 'Documentos', upload: 'Upload de Documentos', pedido_compra: 'Pedido de Compra' };
+            document.getElementById('pageTitle').textContent = titles[page] || page;
+            await loadContent(page);
+        }
+        
+        async function loadContent(page) {
+            const area = document.getElementById('contentArea');
+            if (!area) return;
+            area.style.opacity = '0';
+            setTimeout(async () => {
+                if (page === 'dashboard') area.innerHTML = renderDashboard();
+                else if (page === 'eap') area.innerHTML = renderEapPage();
+                else if (page === 'documentos') area.innerHTML = renderDocumentosPage();
+                else if (page === 'upload') area.innerHTML = renderUploadPage();
+                else if (page === 'pedido_compra') area.innerHTML = renderPedidoCompra();
+                area.style.opacity = '1';
+            }, 200);
+        }
+        
+        window.changePage = changePage;
+        window.selectEapNode = selectEapNode;
+        window.filterDocuments = filterDocuments;
+        window.downloadDocument = downloadDocument;
+        window.prepareUpload = prepareUpload;
+        window.cancelUpload = cancelUpload;
+        window.uploadDocument = uploadDocument;
+        window.showNewPoForm = showNewPoForm;
+        window.addPoItem = addPoItem;
+        window.updatePoTotal = updatePoTotal;
+        window.savePurchaseOrder = savePurchaseOrder;
+        window.clearPoForm = clearPoForm;
+        window.viewPo = viewPo;
+        window.exportPoToExcel = exportPoToExcel;
+        window.deletePo = deletePo;
+        window.switchPoTab = switchPoTab;
+        
+        window.onload = async () => {
+            showLoading('Carregando sistema...');
+            await loadDocumentosFromSupabase();
+            hideLoading();
+            await loadContent('dashboard');
+            showInfo(`Sistema carregado! ${documentos.length} documentos encontrados.`, 'success');
         };
-
-
-
-
     </script>
 </body>
-
 </html>
